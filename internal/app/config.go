@@ -48,6 +48,22 @@ func (c *Config) getContext(context string) (database *Database, tunnel *Tunnel)
 	return db, c.getTunnel(db.Tunnel)
 }
 
+func (c *Config) getContexts() []string {
+	var res []string
+	for _, v := range c.Databases {
+		res = append(res, v.Context)
+	}
+	return res
+}
+
+func (c *Config) getStores() []string {
+	var res []string
+	for _, v := range c.Stores {
+		res = append(res, v.Name)
+	}
+	return res
+}
+
 func (c *Config) getDatabase(context string) *Database {
 	for _, v := range c.Databases {
 		if v.Context == context {

@@ -10,7 +10,7 @@ const (
 )
 
 func (cl *Client) GetDatabaseSize(name string) (int64, error) {
-	var size int64
+	var size sql.NullInt64
 
 	db := sql.OpenDB(cl.connector)
 	defer db.Close()
@@ -19,8 +19,8 @@ func (cl *Client) GetDatabaseSize(name string) (int64, error) {
 
 	row := db.QueryRow(query)
 	if err := row.Scan(&size); err != nil {
-		return size, fmt.Errorf("unable to get database size: %w", err)
+		return size.Int64, fmt.Errorf("unable to get database size: %w", err)
 	}
 
-	return size, nil
+	return size.Int64, nil
 }

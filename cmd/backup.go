@@ -40,8 +40,6 @@ func NewBackupCmd() *cobra.Command {
 	cmd.Flags().StringVar(&context, "context", "", "Database context")
 	cmd.Flags().StringVar(&name, "name", "", "Database name")
 	cmd.Flags().StringVar(&store, "store", "", "Storage name")
-	cmd.MarkFlagRequired("context")
-	cmd.MarkFlagRequired("store")
 
 	return cmd
 }

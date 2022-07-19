@@ -1,8 +1,10 @@
 package app
 
 import (
+	"fmt"
 	"io"
 
+	"github.com/mikelorant/ezdb2/internal/storage"
 	"github.com/mikelorant/ezdb2/internal/structprinter"
 )
 
@@ -23,4 +25,24 @@ type Store struct {
 
 func (s Store) String() string {
 	return structprinter.Sprint(s)
+}
+
+func GetStorer(store *Store) (Storer, error) {
+	var storer Storer
+	switch store.Type {
+	case "s3":
+		s, err := storage.NewBucketStorer(store.Region, store.Bucket, store.Prefix)
+		if err != nil {
+			return nil, fmt.Errorf("unable to provision storage: %v: %w", store.Name, err)
+		}
+		storer = s
+	case "directory":
+		s, err := storage.NewFileStorer(store.Path)
+		if err != nil {
+			return nil, fmt.Errorf("unable to provision storage: %v: %w", store.Name, err)
+		}
+		storer = s
+	}
+
+	return storer, nil
 }

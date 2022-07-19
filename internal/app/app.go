@@ -7,7 +7,6 @@ import (
 	"github.com/mikelorant/ezdb2/internal/database"
 	"github.com/mikelorant/ezdb2/internal/password"
 	"github.com/mikelorant/ezdb2/internal/selector"
-	"github.com/mikelorant/ezdb2/internal/storage"
 )
 
 type App struct {
@@ -93,25 +92,49 @@ func (a *App) CreateUser(opts CreateUserOptions) error {
 }
 
 func (a *App) Backup(opts BackupOptions) error {
-	cl, err := a.GetDBClient(opts.Context)
-	store := a.Config.getStore(opts.Store)
+	context := opts.Context
+	if context == "" {
+		c, err := selector.Select(a.Config.getContexts(),
+			selector.WithMessage("Choose a context:"),
+		)
+		if err != nil {
+			return fmt.Errorf("unable to select context: %w", err)
+		}
+		context = c
+	}
+
+	cl, err := a.GetDBClient(context)
 
 	db, err := cl.ListDatabases()
 	if err != nil {
 		return fmt.Errorf("unable to list databases: %w", err)
 	}
 
+	// TODO: move to func
 	name := opts.Name
-	if opts.Name == "" {
+	if name == "" {
 		name, err = selector.Select(db,
 			selector.WithExclude(IgnoreDatabases),
+			selector.WithMessage("Choose a database:"),
 		)
 		if err != nil {
 			return fmt.Errorf("unable to select database: %w", err)
 		}
 	}
 
-	cl, err = a.GetDBClient(opts.Context,
+	store := opts.Store
+	if store == "" {
+		s, err := selector.Select(a.Config.getStores(),
+			selector.WithMessage("Choose a store:"),
+		)
+		if err != nil {
+			return fmt.Errorf("unable to select stores: %w", err)
+		}
+		store = s
+	}
+	storeCfg := a.Config.getStore(store)
+
+	cl, err = a.GetDBClient(context,
 		WithDBName(name),
 	)
 
@@ -120,20 +143,9 @@ func (a *App) Backup(opts BackupOptions) error {
 		return fmt.Errorf("unable to get database size: %w", err)
 	}
 
-	var storer Storer
-	switch store.Type {
-	case "s3":
-		s, err := storage.NewBucketStorer(store.Region, store.Bucket, store.Prefix)
-		if err != nil {
-			return fmt.Errorf("unable to provision storage: %v: %w", store.Name, err)
-		}
-		storer = s
-	case "directory":
-		s, err := storage.NewFileStorer(store.Path)
-		if err != nil {
-			return fmt.Errorf("unable to provision storage: %v: %w", store.Name, err)
-		}
-		storer = s
+	storer, err := GetStorer(storeCfg)
+	if err != nil {
+		fmt.Errorf("unable to get storer: %w", err)
 	}
 
 	location, err := cl.Backup(name, dbSize, storer)
@@ -147,6 +159,5 @@ func (a *App) Backup(opts BackupOptions) error {
 	return nil
 }
 
-func Backup()  {}
 func Copy()    {}
 func Restore() {}
