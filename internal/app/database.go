@@ -6,8 +6,8 @@ import (
 	"net"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/mikelorant/ezdb2/internal/dbutil"
-	"github.com/mikelorant/ezdb2/internal/structutil"
+	"github.com/mikelorant/ezdb2/internal/database"
+	"github.com/mikelorant/ezdb2/internal/structprinter"
 )
 
 type Dialer interface {
@@ -34,8 +34,7 @@ const (
 )
 
 func (d Database) String() string {
-	out, _ := structutil.Sprint(d)
-	return out
+	return structprinter.Sprint(d)
 }
 
 func WithDBName(name string) func(*DBOptions) {
@@ -44,7 +43,7 @@ func WithDBName(name string) func(*DBOptions) {
 	}
 }
 
-func (a *App) GetDBClient(context string, dbOpts ...func(*DBOptions)) (*dbutil.Client, error) {
+func (a *App) GetDBClient(context string, dbOpts ...func(*DBOptions)) (*database.Client, error) {
 	var dbOptions DBOptions
 	for _, o := range dbOpts {
 		o(&dbOptions)
@@ -57,12 +56,25 @@ func (a *App) GetDBClient(context string, dbOpts ...func(*DBOptions)) (*dbutil.C
 	if err != nil {
 		fmt.Errorf("unable to get dialer function: %w", err)
 	}
-	cl, err := dbutil.NewClient(dbcfg, dial)
+	cl, err := database.NewClient(dbcfg, dial)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get new client: %w", err)
 	}
 
 	return cl, nil
+}
+
+func getDBConfig(db *Database, tun *Tunnel, name string) *mysql.Config {
+	cfg := mysql.NewConfig()
+	cfg.Net = db.Host
+	cfg.Addr = fmt.Sprintf("%v:3306", db.Host)
+	cfg.User = db.User
+	cfg.Passwd = db.Password
+	cfg.DBName = name
+	cfg.TLSConfig = "preferred"
+	cfg.MaxAllowedPacket = DBMaxAllowedPacket
+
+	return cfg
 }
 
 func getDialerFunc(tun *Tunnel) (func(ctx context.Context, address string) (net.Conn, error), error) {
@@ -77,19 +89,6 @@ func getDialerFunc(tun *Tunnel) (func(ctx context.Context, address string) (net.
 	}
 
 	return dial, nil
-}
-
-func getDBConfig(db *Database, tun *Tunnel, name string) *mysql.Config {
-	cfg := mysql.NewConfig()
-	cfg.Net = db.Host
-	cfg.Addr = fmt.Sprintf("%v:3306", db.Host)
-	cfg.User = db.User
-	cfg.Passwd = db.Password
-	cfg.DBName = name
-	cfg.TLSConfig = "preferred"
-	cfg.MaxAllowedPacket = DBMaxAllowedPacket
-
-	return cfg
 }
 
 func dialerFunc(dialer Dialer) func(ctx context.Context, address string) (net.Conn, error) {

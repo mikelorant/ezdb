@@ -1,3 +1,5 @@
+dumps/*
+
 .ezdb.yaml
 ezdb
 ezdb2

@@ -5,8 +5,8 @@ import (
 	"log"
 	"strings"
 
-	"github.com/mikelorant/ezdb2/internal/sshutil"
-	"github.com/mikelorant/ezdb2/internal/structutil"
+	"github.com/mikelorant/ezdb2/internal/structprinter"
+	"github.com/mikelorant/ezdb2/internal/tunnel"
 	"golang.org/x/crypto/ssh"
 )
 
@@ -24,8 +24,7 @@ const (
 )
 
 func (t Tunnel) String() string {
-	out, _ := structutil.Sprint(t)
-	return out
+	return structprinter.Sprint(t)
 }
 
 func isTunnel(tun *Tunnel) bool {
@@ -36,16 +35,16 @@ func isTunnel(tun *Tunnel) bool {
 }
 
 func makeTunnel(tun *Tunnel) (*ssh.Client, error) {
-	var s sshutil.SSH
-	if err := s.Connect(tun.Key, tun.Host, tun.User); err != nil {
+	var t tunnel.Tunnel
+	if err := t.Connect(tun.Key, tun.Host, tun.User); err != nil {
 		return nil, fmt.Errorf("unable to connect to %v: %w", tun.Host, err)
 	}
-	out, err := s.Command(CmdHostname)
+	out, err := t.Command(CmdHostname)
 	if err != nil {
 		return nil, fmt.Errorf("unable to run command: %v: %w", CmdHostname, err)
 	}
 
 	log.Printf("Tunnel succesfully connected: %v\n", strings.TrimSpace(out))
 
-	return s.Client(), nil
+	return t.Client(), nil
 }

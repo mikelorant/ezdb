@@ -1,4 +1,4 @@
-package sshutil
+package tunnel
 
 import (
 	"bytes"
@@ -8,7 +8,7 @@ import (
 	"golang.org/x/crypto/ssh"
 )
 
-type SSH struct {
+type Tunnel struct {
 	client *ssh.Client
 	config Config
 }
@@ -19,7 +19,7 @@ type Config struct {
 	Host string `yaml:"host"`
 }
 
-func (s *SSH) Connect(keyfile string, host string, user string) error {
+func (t *Tunnel) Connect(keyfile string, host string, user string) error {
 	sign, err := signer(keyfile)
 	if err != nil {
 		return fmt.Errorf("unable to get signer: %w", err)
@@ -37,17 +37,17 @@ func (s *SSH) Connect(keyfile string, host string, user string) error {
 	if err != nil {
 		return fmt.Errorf("unable to dial: %w", err)
 	}
-	s.client = cl
+	t.client = cl
 
 	return nil
 }
 
-func (s *SSH) Client() *ssh.Client {
-	return s.client
+func (t *Tunnel) Client() *ssh.Client {
+	return t.client
 }
 
-func (s *SSH) Command(cmd string) (string, error) {
-	out, err := s.exec(cmd)
+func (t *Tunnel) Command(cmd string) (string, error) {
+	out, err := t.exec(cmd)
 	if err != nil {
 		return "", fmt.Errorf("unable to issue command: %v: %w", cmd, err)
 	}
@@ -69,8 +69,8 @@ func signer(keyfile string) (ssh.Signer, error) {
 	return signer, nil
 }
 
-func (s *SSH) exec(cmd string) (*bytes.Buffer, error) {
-	sess, err := s.client.NewSession()
+func (t *Tunnel) exec(cmd string) (*bytes.Buffer, error) {
+	sess, err := t.client.NewSession()
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create session: %w", err)
 	}

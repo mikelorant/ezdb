@@ -10,6 +10,7 @@ import (
 type Config struct {
 	Databases Databases
 	Tunnels   Tunnels
+	Stores    Stores
 }
 
 const (
@@ -57,9 +58,19 @@ func (c *Config) getDatabase(context string) *Database {
 	return nil
 }
 
-func (c *Config) getTunnel(tunnel string) *Tunnel {
+func (c *Config) getTunnel(name string) *Tunnel {
 	for _, v := range c.Tunnels {
-		if v.Name == tunnel {
+		if v.Name == name {
+			return &v
+		}
+	}
+
+	return nil
+}
+
+func (c *Config) getStore(name string) *Store {
+	for _, v := range c.Stores {
+		if v.Name == name {
 			return &v
 		}
 	}

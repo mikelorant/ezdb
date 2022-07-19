@@ -1,4 +1,4 @@
-package passutil
+package password
 
 import (
 	"math/rand"

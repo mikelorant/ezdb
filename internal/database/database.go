@@ -1,13 +1,11 @@
-package dbutil
+package database
 
 import (
 	"bytes"
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
-	"log"
 	"net"
-	"strings"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/rodaine/table"
@@ -29,27 +27,6 @@ type Config struct {
 	Name     string `yaml:"name"`
 }
 
-var privileges = []string{
-	"SELECT",
-	"INSERT",
-	"UPDATE",
-	"DELETE",
-	"CREATE",
-	"DROP",
-	"REFERENCES",
-	"INDEX",
-	"ALTER",
-	"CREATE TEMPORARY TABLES",
-	"LOCK TABLES",
-	"EXECUTE",
-	"CREATE VIEW",
-	"SHOW VIEW",
-	"CREATE ROUTINE",
-	"ALTER ROUTINE",
-	"EVENT",
-	"TRIGGER",
-}
-
 func NewClient(cfg *mysql.Config, dialer mysql.DialContextFunc) (*Client, error) {
 	mysql.RegisterDialContext(cfg.Net, dialer)
 
@@ -62,49 +39,6 @@ func NewClient(cfg *mysql.Config, dialer mysql.DialContextFunc) (*Client, error)
 		config:    cfg,
 		connector: con,
 	}, nil
-}
-
-func (cl *Client) Query(query string) ([][]string, error) {
-	var out [][]string
-
-	db := sql.OpenDB(cl.connector)
-	defer db.Close()
-
-	rows, err := db.Query(query)
-	if err != nil {
-		return out, fmt.Errorf("unable to query database: %w", err)
-	}
-	defer rows.Close()
-	log.Printf("Executed query: %s\n", query)
-
-	out, err = output(rows)
-	if err != nil {
-		return out, fmt.Errorf("unable to output rows: %w", err)
-	}
-
-	return out, nil
-}
-
-func (cl *Client) CreateUserGrant(name, password, database string) error {
-	db := sql.OpenDB(cl.connector)
-	defer db.Close()
-
-	query := []string{
-		fmt.Sprintf("CREATE USER '%v'@'%%' IDENTIFIED BY '%v';", name, password),
-		fmt.Sprintf("GRANT %v ON %v.* TO '%v'@'%%';", strings.Join(privileges, ","), database, name),
-	}
-
-	tx, err := db.Begin()
-	for _, q := range query {
-		_, err = tx.Exec(q)
-		if err != nil {
-			tx.Rollback()
-			return fmt.Errorf("transaction failed: %w", err)
-		}
-	}
-	tx.Commit()
-
-	return nil
 }
 
 func output(rows *sql.Rows) ([][]string, error) {
