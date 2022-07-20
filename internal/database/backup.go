@@ -1,14 +1,13 @@
 package database
 
 import (
-	"compress/gzip"
 	"database/sql"
 	"fmt"
 	"io"
 
-	"github.com/mikelorant/ezdb2/internal/progress"
-
 	"github.com/jamf/go-mysqldump"
+	"github.com/mikelorant/ezdb2/internal/compress"
+	"github.com/mikelorant/ezdb2/internal/progress"
 )
 
 func (cl *Client) Backup(name string, size int64, storer Storer, verbose bool) (string, error) {
@@ -26,7 +25,7 @@ func (cl *Client) Backup(name string, size int64, storer Storer, verbose bool) (
 
 	gzipIn, dumpOut := io.Pipe()
 	dumpIn := io.MultiWriter(dumpOut, bar)
-	gzipOut := NewGzipReader(gzipIn)
+	gzipOut := compress.NewGzipCompressor(gzipIn)
 
 	storer.Store(gzipOut, name, done, result)
 
@@ -43,21 +42,4 @@ func (cl *Client) Backup(name string, size int64, storer Storer, verbose bool) (
 	bar.Finish()
 
 	return location, nil
-}
-
-// source (r) -> (r) copy (w) -> (w) gzip (w) -> (w) pipe (r)
-func NewGzipReader(source io.Reader) io.Reader {
-	r, w := io.Pipe()
-	go func() {
-		defer w.Close()
-
-		zip, err := gzip.NewWriterLevel(w, gzip.BestCompression)
-		defer zip.Close()
-		if err != nil {
-			w.CloseWithError(err)
-		}
-
-		io.Copy(zip, source)
-	}()
-	return r
 }

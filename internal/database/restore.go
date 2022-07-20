@@ -2,12 +2,12 @@ package database
 
 import (
 	"bufio"
-	"compress/gzip"
 	"database/sql"
 	"fmt"
 	"io"
 	"strings"
 
+	"github.com/mikelorant/ezdb2/internal/compress"
 	"github.com/mikelorant/ezdb2/internal/progress"
 )
 
@@ -28,7 +28,7 @@ func (cl *Client) Restore(name, filename string, storer Storer, verbose bool) er
 
 	gz, err := rb.Peek(2)
 	if gz[0] == 31 && gz[1] == 139 {
-		rs := NewGzip(rb)
+		rs := compress.NewGzipDecompressor(rb)
 		scanner = bufio.NewScanner(rs)
 	}
 
@@ -84,12 +84,4 @@ func (cl *Client) Restore(name, filename string, storer Storer, verbose bool) er
 	bar.Finish()
 
 	return nil
-}
-
-func NewGzip(rc io.Reader) io.Reader {
-	r, err := gzip.NewReader(rc)
-	if err != nil {
-		r.Close()
-	}
-	return r
 }

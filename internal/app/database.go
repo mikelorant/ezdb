@@ -1,18 +1,12 @@
 package app
 
 import (
-	"context"
 	"fmt"
-	"net"
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/mikelorant/ezdb2/internal/database"
 	"github.com/mikelorant/ezdb2/internal/structprinter"
 )
-
-type Dialer interface {
-	Dial(network, address string) (net.Conn, error)
-}
 
 type Databases []Database
 
@@ -80,24 +74,4 @@ func getDBConfig(db *Database, tun *Tunnel, name string) *mysql.Config {
 	cfg.MaxAllowedPacket = DBMaxAllowedPacket
 
 	return cfg
-}
-
-func getDialerFunc(tun *Tunnel) (func(ctx context.Context, address string) (net.Conn, error), error) {
-	dial := dialerFunc(&net.Dialer{})
-
-	if isTunnel(tun) {
-		tunnel, err := makeTunnel(tun)
-		if err != nil {
-			return nil, fmt.Errorf("unable to make tunnel: %w", err)
-		}
-		dial = dialerFunc(tunnel)
-	}
-
-	return dial, nil
-}
-
-func dialerFunc(dialer Dialer) func(ctx context.Context, address string) (net.Conn, error) {
-	return func(ctx context.Context, address string) (net.Conn, error) {
-		return dialer.Dial("tcp", address)
-	}
 }
