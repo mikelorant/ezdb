@@ -21,6 +21,8 @@ func NewPipeStorer() (*PipeStore, error) {
 
 func (p *PipeStore) Store(data io.Reader, filename string, done chan bool, result chan string) error {
 	go func() error {
+		defer p.writer.Close()
+
 		_, err := io.Copy(p.writer, data)
 		if err != nil {
 			return fmt.Errorf("unable to write to pipe: %w", err)
@@ -42,7 +44,6 @@ func (p *PipeStore) Retrieve(data io.WriteCloser, filename string, done chan boo
 			return fmt.Errorf("unable to read from pipe: %w", err)
 		}
 		data.Close()
-
 		done <- true
 
 		return nil

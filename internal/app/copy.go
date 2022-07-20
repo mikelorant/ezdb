@@ -3,6 +3,8 @@ package app
 import (
 	"fmt"
 	"log"
+
+	"golang.org/x/sync/errgroup"
 )
 
 type CopyOptions struct {
@@ -73,29 +75,27 @@ func (a *App) Copy(opts CopyOptions) error {
 		fmt.Errorf("unable to get storer: %w", err)
 	}
 
-	done := make(chan bool, 2)
+	g := new(errgroup.Group)
 
-	go func() error {
+	g.Go(func() error {
 		if _, err := fromClient.Backup(fromName, fromDBSize, storer, true); err != nil {
 			return fmt.Errorf("unable to backup source database: %v: %w", fromName, err)
 		}
 
-		done <- true
-
 		return nil
-	}()
+	})
 
-	go func() error {
+	g.Go(func() error {
 		if err := toClient.Restore(toName, "", storer, false); err != nil {
 			return fmt.Errorf("unable to restore target database: %v: %w", toName, err)
 		}
 
-		done <- true
-
 		return nil
-	}()
+	})
 
-	<-done
+	if err := g.Wait(); err != nil {
+		return fmt.Errorf("unable to copy databases: %w", err)
+	}
 
 	log.Println("Database successfully copied.")
 

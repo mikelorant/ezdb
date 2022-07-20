@@ -16,6 +16,7 @@ require (
 	github.com/schollz/progressbar/v3 v3.8.6
 	github.com/spf13/cobra v1.5.0
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
+	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
 	golang.org/x/term v0.0.0-20220526004731-065cf7ba2467
 	gopkg.in/yaml.v3 v3.0.1
 )
