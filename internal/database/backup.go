@@ -11,10 +11,6 @@ import (
 	"github.com/jamf/go-mysqldump"
 )
 
-type Storer interface {
-	Store(data io.Reader, filename string, done chan bool, result chan string) error
-}
-
 func (cl *Client) Backup(name string, size int64, storer Storer) (string, error) {
 	db := sql.OpenDB(cl.connector)
 	defer db.Close()

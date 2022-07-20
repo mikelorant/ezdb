@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"database/sql/driver"
 	"fmt"
+	"io"
 	"net"
 
 	"github.com/go-sql-driver/mysql"
@@ -13,6 +14,11 @@ import (
 
 type Dialer interface {
 	Dial(network, address string) (net.Conn, error)
+}
+
+type Storer interface {
+	Store(data io.Reader, filename string, done chan bool, result chan string) error
+	Retrieve(data io.Writer, filename string, done chan bool) error
 }
 
 type Client struct {

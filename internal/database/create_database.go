@@ -1,0 +1,23 @@
+package database
+
+import (
+	"database/sql"
+	"fmt"
+)
+
+func (cl *Client) CreateDatabase(name string) error {
+	db := sql.OpenDB(cl.connector)
+	defer db.Close()
+
+	q := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %v;", name)
+
+	tx, err := db.Begin()
+	_, err = tx.Exec(q)
+	if err != nil {
+		tx.Rollback()
+		return fmt.Errorf("transaction failed: %w", err)
+	}
+	tx.Commit()
+
+	return nil
+}

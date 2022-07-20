@@ -57,3 +57,27 @@ func (f *FileStore) Store(data io.Reader, filename string, done chan bool, resul
 
 	return nil
 }
+
+func (f *FileStore) Retrieve(data io.Writer, filename string, done chan bool) error {
+	filename = path.Join(f.Directory, filename)
+
+	fd, err := os.Open(filename)
+	if err != nil {
+		return fmt.Errorf("unable to open file: %w", err)
+	}
+
+	go func() error {
+		defer fd.Close()
+
+		_, err := io.Copy(data, fd)
+		if err != nil {
+			return fmt.Errorf("unable to read file: %w", err)
+		}
+
+		done <- true
+
+		return nil
+	}()
+
+	return nil
+}

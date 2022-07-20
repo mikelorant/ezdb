@@ -31,6 +31,13 @@ type BackupOptions struct {
 	Store   string
 }
 
+type RestoreOptions struct {
+	Context		string
+	Name		string
+	Store		string
+	Filename	string
+}
+
 var IgnoreDatabases = []string{
 	"sys",
 	"mysql",
@@ -140,5 +147,41 @@ func (a *App) Backup(opts BackupOptions) error {
 	return nil
 }
 
-func Copy()    {}
-func Restore() {}
+func (a *App) Restore(opts RestoreOptions) error {
+	context, err := Select(opts.Context, a.Config.getContexts(), "Choose a context:")
+	if err != nil {
+		return fmt.Errorf("unable to select a context: %w", err)
+	}
+
+	cl, err := a.GetDBClient(context)
+
+	if err := cl.CreateDatabase(opts.Name); err != nil {
+		return fmt.Errorf("unable to create database: %v: %w", opts.Name, err)
+	}
+
+	store, err := Select(opts.Store, a.Config.getStores(), "Choose a store:")
+	if err != nil {
+		return fmt.Errorf("unable to select a store: %w", err)
+	}
+
+	storeCfg := a.Config.getStore(store)
+
+	cl, err = a.GetDBClient(context,
+		WithDBName(opts.Name),
+	)
+
+	storer, err := GetStorer(storeCfg)
+	if err != nil {
+		fmt.Errorf("unable to get storer: %w", err)
+	}
+
+	if err := cl.Restore(opts.Name, opts.Filename, storer); err != nil {
+		return fmt.Errorf("unable to backup database: %v: %w", opts.Name, err)
+	}
+
+	log.Println("Database successfully restored.")
+
+	return nil
+}
+
+func Copy() {}
