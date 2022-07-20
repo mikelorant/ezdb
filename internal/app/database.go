@@ -20,6 +20,7 @@ type Database struct {
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
 	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
 	Context  string `yaml:"context"`
 	Tunnel   string `yaml:"tunnel"`
 }
@@ -65,9 +66,13 @@ func (a *App) GetDBClient(context string, dbOpts ...func(*DBOptions)) (*database
 }
 
 func getDBConfig(db *Database, tun *Tunnel, name string) *mysql.Config {
+	if db.Port == 0 {
+		db.Port = 3306
+	}
+
 	cfg := mysql.NewConfig()
 	cfg.Net = db.Host
-	cfg.Addr = fmt.Sprintf("%v:3306", db.Host)
+	cfg.Addr = fmt.Sprintf("%v:%v", db.Host, db.Port)
 	cfg.User = db.User
 	cfg.Passwd = db.Password
 	cfg.DBName = name

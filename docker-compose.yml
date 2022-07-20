@@ -1,15 +1,26 @@
 version: "3.9"
 
 services:
-  database:
+  database1:
     image: mariadb:10.8.3
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: "true"
     command: --log_warnings=1
     volumes:
-    - database:/var/lib/mysql
+    - database1:/var/lib/mysql
     ports:
     - 3306:3306
 
+  database2:
+    image: mariadb:10.8.3
+    environment:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "true"
+    command: --log_warnings=1
+    volumes:
+    - database2:/var/lib/mysql
+    ports:
+    - 3307:3306
+
 volumes:
-  database:
+  database1:
+  database2:
