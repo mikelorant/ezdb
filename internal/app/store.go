@@ -44,6 +44,12 @@ func GetStorer(store *Store) (Storer, error) {
 			return nil, fmt.Errorf("unable to provision storage: %v: %w", store.Name, err)
 		}
 		storer = s
+	case "pipe":
+		s, err := storage.NewPipeStorer()
+		if err != nil {
+			return nil, fmt.Errorf("unable to provision storage: %v: %w", store.Name, err)
+		}
+		storer = s
 	}
 
 	return storer, nil

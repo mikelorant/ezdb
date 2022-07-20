@@ -11,12 +11,12 @@ import (
 	"github.com/mikelorant/ezdb2/internal/progress"
 )
 
-func (cl *Client) Restore(name, filename string, storer Storer) error {
+func (cl *Client) Restore(name, filename string, storer Storer, verbose bool) error {
 	db := sql.OpenDB(cl.connector)
 	defer db.Close()
 
 	desc := "Restoring..."
-	bar := progress.New(-1, desc)
+	bar := progress.New(-1, desc, verbose)
 
 	done := make(chan bool)
 

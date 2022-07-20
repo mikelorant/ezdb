@@ -11,12 +11,12 @@ import (
 	"github.com/jamf/go-mysqldump"
 )
 
-func (cl *Client) Backup(name string, size int64, storer Storer) (string, error) {
+func (cl *Client) Backup(name string, size int64, storer Storer, verbose bool) (string, error) {
 	db := sql.OpenDB(cl.connector)
 	defer db.Close()
 
 	desc := "Dumping..."
-	bar := progress.New(size, desc)
+	bar := progress.New(size, desc, verbose)
 
 	done := make(chan bool)
 	result := make(chan string)
