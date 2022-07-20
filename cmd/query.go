@@ -37,9 +37,6 @@ func NewQueryCmd() *cobra.Command {
 	}
 
 	cmd.Flags().SortFlags = false
-	cmd.Flags().StringVar(&context, "context", "", "Database context")
-	cmd.Flags().StringVar(&name, "name", "", "Database name")
-	cmd.MarkFlagRequired("context")
 
 	return cmd
 }
