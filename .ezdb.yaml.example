@@ -1,0 +1,39 @@
+databases:
+- context: typical
+  host: mydb.123456789012.us-east-1.rds.amazonaws.com
+  user: root
+  password: ~
+
+- context: with-port
+  host: mydb.123456789012.us-east-1.rds.amazonaws.com
+  port: 3307
+  user: root
+  password: ~
+
+- context: with-tunnel
+  host: mydb.123456789012.us-east-1.rds.amazonaws.com
+  user: root
+  password: ~
+  tunnel: mytunnel
+
+- context: localhost
+  user: root
+  password: ~
+  host: 127.0.0.1
+
+tunnels:
+- name: mytunnel
+  key: $HOME/.ssh/id_rsa
+  user: root
+  host: 192.168.1.1
+
+stores:
+- name: local
+  type: directory
+  path: ./dumps
+
+- name: bucket
+  type: s3
+  region: us-east-1
+  bucket: mybucket
+  prefix: ezdb
