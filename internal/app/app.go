@@ -32,10 +32,10 @@ type BackupOptions struct {
 }
 
 type RestoreOptions struct {
-	Context		string
-	Name		string
-	Store		string
-	Filename	string
+	Context  string
+	Name     string
+	Store    string
+	Filename string
 }
 
 var IgnoreDatabases = []string{

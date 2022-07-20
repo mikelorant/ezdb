@@ -10,7 +10,7 @@ import (
 
 type Storer interface {
 	Store(data io.Reader, filename string, done chan bool, result chan string) error
-	Retrieve(data io.Writer, filename string, done chan bool) error
+	Retrieve(data io.WriteCloser, filename string, done chan bool) error
 }
 
 type Stores []Store

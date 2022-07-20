@@ -58,7 +58,7 @@ func (f *FileStore) Store(data io.Reader, filename string, done chan bool, resul
 	return nil
 }
 
-func (f *FileStore) Retrieve(data io.Writer, filename string, done chan bool) error {
+func (f *FileStore) Retrieve(data io.WriteCloser, filename string, done chan bool) error {
 	filename = path.Join(f.Directory, filename)
 
 	fd, err := os.Open(filename)
@@ -73,6 +73,7 @@ func (f *FileStore) Retrieve(data io.Writer, filename string, done chan bool) er
 		if err != nil {
 			return fmt.Errorf("unable to read file: %w", err)
 		}
+		data.Close()
 
 		done <- true
 

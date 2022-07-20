@@ -12,14 +12,14 @@ import (
 )
 
 type FakeWriterAt struct {
-    w io.Writer
+	w io.WriteCloser
 }
 
 type BucketStore struct {
-	uploader 	*s3manager.Uploader
-	downloader	*s3manager.Downloader
-	Bucket   	string
-	Prefix   	string
+	uploader   *s3manager.Uploader
+	downloader *s3manager.Downloader
+	Bucket     string
+	Prefix     string
 }
 
 type BucketOptions struct {
@@ -40,9 +40,10 @@ func NewBucketStorer(region, bucket, prefix string) (*BucketStore, error) {
 	downloader.Concurrency = 1
 
 	return &BucketStore{
-		uploader: uploader,
-		Bucket:   bucket,
-		Prefix:   prefix,
+		uploader:   uploader,
+		downloader: downloader,
+		Bucket:     bucket,
+		Prefix:     prefix,
 	}, nil
 }
 
@@ -70,14 +71,15 @@ func (b *BucketStore) Store(data io.Reader, filename string, done chan bool, res
 	return nil
 }
 
-func (b *BucketStore) Retrieve(data io.Writer, filename string, done chan bool) error {
+func (b *BucketStore) Retrieve(data io.WriteCloser, filename string, done chan bool) error {
 	key := fmt.Sprintf("%v/%v", b.Prefix, filename)
 
+	w := FakeWriterAt{
+		w: data,
+	}
+
 	go func() error {
-		_, err := b.downloader.Download(
-			FakeWriterAt{
-				w: data,
-			},
+		_, err := b.downloader.Download(w,
 			&s3.GetObjectInput{
 				Bucket: aws.String(b.Bucket),
 				Key:    aws.String(key),
@@ -86,6 +88,8 @@ func (b *BucketStore) Retrieve(data io.Writer, filename string, done chan bool) 
 		if err != nil {
 			return fmt.Errorf("Unable to download: %w", err)
 		}
+
+		data.Close()
 
 		done <- true
 
@@ -96,6 +100,5 @@ func (b *BucketStore) Retrieve(data io.Writer, filename string, done chan bool) 
 }
 
 func (fw FakeWriterAt) WriteAt(p []byte, offset int64) (n int, err error) {
-    // ignore 'offset' because we forced sequential downloads
-    return fw.w.Write(p)
+	return fw.w.Write(p)
 }

@@ -2,6 +2,7 @@ package database
 
 import (
 	"bufio"
+	"compress/gzip"
 	"database/sql"
 	"fmt"
 	"io"
@@ -20,10 +21,17 @@ func (cl *Client) Restore(name, filename string, storer Storer) error {
 	done := make(chan bool)
 
 	r, w := io.Pipe()
-
 	storer.Retrieve(w, filename, done)
+	rb := bufio.NewReader(r)
 
-	scanner := bufio.NewScanner(r)
+	scanner := bufio.NewScanner(rb)
+
+	gz, err := rb.Peek(2)
+	if gz[0] == 31 && gz[1] == 139 {
+		rs := NewGzip(rb)
+		scanner = bufio.NewScanner(rs)
+	}
+
 	buf := make([]byte, 0, 50*1024*1024) // Create a 50MB buffer
 	scanner.Buffer(buf, 10*1024*1024)    // Scan lines of up to 10MB
 
@@ -71,12 +79,17 @@ func (cl *Client) Restore(name, filename string, storer Storer) error {
 		}
 	}
 	tx.Commit()
-	bar.Finish()
 
 	<-done
 	bar.Finish()
 
-	fmt.Println(rows)
-
 	return nil
+}
+
+func NewGzip(rc io.Reader) io.Reader {
+	r, err := gzip.NewReader(rc)
+	if err != nil {
+		r.Close()
+	}
+	return r
 }
