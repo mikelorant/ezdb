@@ -82,3 +82,18 @@ func (f *FileStore) Retrieve(data io.WriteCloser, filename string, done chan boo
 
 	return nil
 }
+
+func (b *FileStore) List() ([]string, error) {
+	var list []string
+
+	files, err := os.ReadDir(b.Directory)
+	if err != nil {
+		return list, fmt.Errorf("unable to read directory: %v: %w", b.Directory, err)
+	}
+
+	for _, file := range files {
+		list = append(list, file.Name())
+	}
+
+	return list, nil
+}

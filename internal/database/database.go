@@ -19,6 +19,7 @@ type Dialer interface {
 type Storer interface {
 	Store(data io.Reader, filename string, done chan bool, result chan string) error
 	Retrieve(data io.WriteCloser, filename string, done chan bool) error
+	List() ([]string, error)
 }
 
 type Client struct {

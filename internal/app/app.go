@@ -175,7 +175,16 @@ func (a *App) Restore(opts RestoreOptions) error {
 		fmt.Errorf("unable to get storer: %w", err)
 	}
 
-	if err := cl.Restore(opts.Name, opts.Filename, storer); err != nil {
+	filenames, err := storer.List()
+	if err != nil {
+		return fmt.Errorf("unable to list store: %w", err)
+	}
+	filename, err := Select(opts.Filename, filenames, "Choose a file:")
+	if err != nil {
+		return fmt.Errorf("unable to select a file: %w", err)
+	}
+
+	if err := cl.Restore(opts.Name, filename, storer); err != nil {
 		return fmt.Errorf("unable to backup database: %v: %w", opts.Name, err)
 	}
 

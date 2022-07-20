@@ -43,6 +43,7 @@ func NewRestoreCmd() *cobra.Command {
 	cmd.Flags().StringVar(&name, "name", "", "Database name")
 	cmd.Flags().StringVar(&store, "store", "", "Storage name")
 	cmd.Flags().StringVar(&filename, "filename", "", "Filename")
+	cmd.MarkFlagRequired("name")
 
 	return cmd
 }
