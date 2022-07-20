@@ -6,7 +6,6 @@ import (
 
 	"github.com/mikelorant/ezdb2/internal/database"
 	"github.com/mikelorant/ezdb2/internal/password"
-	"github.com/mikelorant/ezdb2/internal/selector"
 )
 
 type App struct {
@@ -92,15 +91,9 @@ func (a *App) CreateUser(opts CreateUserOptions) error {
 }
 
 func (a *App) Backup(opts BackupOptions) error {
-	context := opts.Context
-	if context == "" {
-		c, err := selector.Select(a.Config.getContexts(),
-			selector.WithMessage("Choose a context:"),
-		)
-		if err != nil {
-			return fmt.Errorf("unable to select context: %w", err)
-		}
-		context = c
+	context, err := Select(opts.Context, a.Config.getContexts(), "Choose a context:")
+	if err != nil {
+		return fmt.Errorf("unable to select a context: %w", err)
 	}
 
 	cl, err := a.GetDBClient(context)
@@ -110,28 +103,16 @@ func (a *App) Backup(opts BackupOptions) error {
 		return fmt.Errorf("unable to list databases: %w", err)
 	}
 
-	// TODO: move to func
-	name := opts.Name
-	if name == "" {
-		name, err = selector.Select(db,
-			selector.WithExclude(IgnoreDatabases),
-			selector.WithMessage("Choose a database:"),
-		)
-		if err != nil {
-			return fmt.Errorf("unable to select database: %w", err)
-		}
+	name, err := SelectWithExclude(opts.Name, db, "Choose a database:", IgnoreDatabases)
+	if err != nil {
+		return fmt.Errorf("unable to select a context: %w", err)
 	}
 
-	store := opts.Store
-	if store == "" {
-		s, err := selector.Select(a.Config.getStores(),
-			selector.WithMessage("Choose a store:"),
-		)
-		if err != nil {
-			return fmt.Errorf("unable to select stores: %w", err)
-		}
-		store = s
+	store, err := Select(opts.Store, a.Config.getStores(), "Choose a store:")
+	if err != nil {
+		return fmt.Errorf("unable to select a store: %w", err)
 	}
+
 	storeCfg := a.Config.getStore(store)
 
 	cl, err = a.GetDBClient(context,
