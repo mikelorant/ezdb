@@ -62,7 +62,7 @@ func (cl *Client) Restore(name, filename string, storer Storer, verbose bool) er
 
 		// If the line has a suffix of ";" we execute the query
 		if strings.HasSuffix(text, ";") {
-			res, err := tx.Exec(query)
+			res, err := tx.Exec(sanitise(query))
 			if err != nil {
 				tx.Rollback()
 				return fmt.Errorf("transaction failed: %w", err)
@@ -84,4 +84,16 @@ func (cl *Client) Restore(name, filename string, storer Storer, verbose bool) er
 	bar.Finish()
 
 	return nil
+}
+
+// TODO: make generic
+func sanitise(str string) string {
+	substr := "DEFINER=`admin`@`%`"
+	newstr := "DEFINER=`infra01`@`%`"
+
+	if strings.Contains(str, substr) {
+		return strings.Replace(str, substr, newstr, 1)
+	}
+
+	return str
 }

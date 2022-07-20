@@ -54,7 +54,6 @@ func NewCreateUserCmd() *cobra.Command {
 	cmd.Flags().StringVar(&name, "name", "", "User name")
 	cmd.Flags().StringVar(&password, "password", "", "User password")
 	cmd.Flags().StringVar(&database, "database", "", "Database grant for user")
-	cmd.MarkFlagRequired("context")
 	cmd.MarkFlagRequired("name")
 	cmd.MarkFlagRequired("database")
 

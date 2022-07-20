@@ -16,7 +16,12 @@ type CreateUserOptions struct {
 }
 
 func (a *App) CreateUser(opts CreateUserOptions) error {
-	cl, err := a.GetDBClient(opts.Context)
+	context, err := Select(opts.Context, a.Config.getContexts(), "Choose a context:")
+	if err != nil {
+		return fmt.Errorf("unable to select a context: %w", err)
+	}
+
+	cl, err := a.GetDBClient(context)
 
 	pass := opts.Password
 	if pass == "" {

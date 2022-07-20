@@ -48,6 +48,16 @@ func (a *App) Copy(opts CopyOptions) error {
 
 	toClient, err := a.GetDBClient(toContext)
 
+	if toClient.IsDatabase(toName) {
+		log.Println("Found existing database:", toName)
+		log.Println("Press enter to drop database.")
+		fmt.Scanln()
+
+		if err := toClient.DropDatabase(toName); err != nil {
+			return fmt.Errorf("unable to drop target database: %v: %w", toName, err)
+		}
+	}
+
 	if err := toClient.CreateDatabase(toName); err != nil {
 		return fmt.Errorf("unable to create target database: %v: %w", toName, err)
 	}
