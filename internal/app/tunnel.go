@@ -28,10 +28,7 @@ func (t Tunnel) String() string {
 }
 
 func isTunnel(tun *Tunnel) bool {
-	if tun == nil {
-		return false
-	}
-	return true
+	return tun != nil
 }
 
 func makeTunnel(tun *Tunnel) (*ssh.Client, error) {

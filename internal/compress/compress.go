@@ -12,10 +12,10 @@ func NewGzipCompressor(source io.Reader) io.Reader {
 		defer w.Close()
 
 		zip, err := gzip.NewWriterLevel(w, gzip.BestCompression)
-		defer zip.Close()
 		if err != nil {
 			w.CloseWithError(err)
 		}
+		defer zip.Close()
 
 		io.Copy(zip, source)
 	}()

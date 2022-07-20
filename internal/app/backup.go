@@ -18,6 +18,9 @@ func (a *App) Backup(opts BackupOptions) error {
 	}
 
 	cl, err := a.GetDBClient(context)
+	if err != nil {
+		return fmt.Errorf("unable to get database client: %w", err)
+	}
 
 	db, err := cl.ListDatabases()
 	if err != nil {
@@ -39,6 +42,9 @@ func (a *App) Backup(opts BackupOptions) error {
 	cl, err = a.GetDBClient(context,
 		WithDBName(name),
 	)
+	if err != nil {
+		return fmt.Errorf("unable to get database client: %w", err)
+	}
 
 	dbSize, err := cl.GetDatabaseSize(name)
 	if err != nil {
@@ -47,7 +53,7 @@ func (a *App) Backup(opts BackupOptions) error {
 
 	storer, err := GetStorer(storeCfg)
 	if err != nil {
-		fmt.Errorf("unable to get storer: %w", err)
+		return fmt.Errorf("unable to get storer: %w", err)
 	}
 
 	location, err := cl.Backup(name, dbSize, storer, true)

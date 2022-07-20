@@ -22,6 +22,9 @@ func (a *App) CreateUser(opts CreateUserOptions) error {
 	}
 
 	cl, err := a.GetDBClient(context)
+	if err != nil {
+		return fmt.Errorf("unable to get database client: %w", err)
+	}
 
 	pass := opts.Password
 	if pass == "" {

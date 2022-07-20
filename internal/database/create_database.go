@@ -12,6 +12,9 @@ func (cl *Client) CreateDatabase(name string) error {
 	q := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %v;", name)
 
 	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("unable to begin transaction: %w", err)
+	}
 	_, err = tx.Exec(q)
 	if err != nil {
 		tx.Rollback()

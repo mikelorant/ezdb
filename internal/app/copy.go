@@ -21,6 +21,9 @@ func (a *App) Copy(opts CopyOptions) error {
 	}
 
 	fromClient, err := a.GetDBClient(fromContext)
+	if err != nil {
+		return fmt.Errorf("unable to get source database client: %w", err)
+	}
 
 	fromDB, err := fromClient.ListDatabases()
 	if err != nil {
@@ -42,6 +45,9 @@ func (a *App) Copy(opts CopyOptions) error {
 	fromClient, err = a.GetDBClient(fromContext,
 		WithDBName(fromName),
 	)
+	if err != nil {
+		return fmt.Errorf("unable to get source database client: %w", err)
+	}
 
 	fromDBSize, err := fromClient.GetDatabaseSize(fromName)
 	if err != nil {
@@ -49,6 +55,9 @@ func (a *App) Copy(opts CopyOptions) error {
 	}
 
 	toClient, err := a.GetDBClient(toContext)
+	if err != nil {
+		return fmt.Errorf("unable to get source database client: %w", err)
+	}
 
 	if toClient.IsDatabase(toName) {
 		log.Println("Found existing database:", toName)
@@ -67,12 +76,15 @@ func (a *App) Copy(opts CopyOptions) error {
 	toClient, err = a.GetDBClient(toContext,
 		WithDBName(toName),
 	)
+	if err != nil {
+		return fmt.Errorf("unable to get target database client: %w", err)
+	}
 
 	storer, err := GetStorer(&Store{
 		Type: "pipe",
 	})
 	if err != nil {
-		fmt.Errorf("unable to get storer: %w", err)
+		return fmt.Errorf("unable to get storer: %w", err)
 	}
 
 	g := new(errgroup.Group)

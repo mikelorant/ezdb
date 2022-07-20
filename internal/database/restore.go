@@ -27,6 +27,9 @@ func (cl *Client) Restore(name, filename string, storer Storer, verbose bool) er
 	scanner := bufio.NewScanner(rb)
 
 	gz, err := rb.Peek(2)
+	if err != nil {
+		return fmt.Errorf("unable to check for compression: %w", err)
+	}
 	if gz[0] == 31 && gz[1] == 139 {
 		rs := compress.NewGzipDecompressor(rb)
 		scanner = bufio.NewScanner(rs)

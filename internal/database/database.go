@@ -68,7 +68,7 @@ func output(rows *sql.Rows) ([][]string, error) {
 		result := []string{}
 		err = rows.Scan(dest...)
 		if err != nil {
-			return out, fmt.Errorf("unable to scan rows: %v", err)
+			return out, fmt.Errorf("unable to scan rows: %w", err)
 		}
 
 		for _, v := range rawResult {

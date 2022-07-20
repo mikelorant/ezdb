@@ -19,6 +19,9 @@ func (a *App) Restore(opts RestoreOptions) error {
 	}
 
 	cl, err := a.GetDBClient(context)
+	if err != nil {
+		return fmt.Errorf("unable to get database client: %w", err)
+	}
 
 	if err := cl.CreateDatabase(opts.Name); err != nil {
 		return fmt.Errorf("unable to create database: %v: %w", opts.Name, err)
@@ -34,10 +37,13 @@ func (a *App) Restore(opts RestoreOptions) error {
 	cl, err = a.GetDBClient(context,
 		WithDBName(opts.Name),
 	)
+	if err != nil {
+		return fmt.Errorf("unable to get database client: %w", err)
+	}
 
 	storer, err := GetStorer(storeCfg)
 	if err != nil {
-		fmt.Errorf("unable to get storer: %w", err)
+		return fmt.Errorf("unable to get storer: %w", err)
 	}
 
 	filenames, err := storer.List()

@@ -52,6 +52,6 @@ func (p *PipeStore) Retrieve(data io.WriteCloser, filename string, done chan boo
 	return nil
 }
 
-func (b *PipeStore) List() ([]string, error) {
+func (p *PipeStore) List() ([]string, error) {
 	return []string{}, nil
 }

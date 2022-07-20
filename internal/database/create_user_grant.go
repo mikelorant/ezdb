@@ -37,8 +37,14 @@ func (cl *Client) CreateUserGrant(name, password, database string) error {
 	}
 
 	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("unable to begin transaction: %w", err)
+	}
 	for _, q := range query {
 		_, err = tx.Exec(q)
+		if err != nil {
+			return fmt.Errorf("unable to begin transaction: %w", err)
+		}
 		if err != nil {
 			tx.Rollback()
 			return fmt.Errorf("transaction failed: %w", err)

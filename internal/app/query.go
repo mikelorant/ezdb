@@ -14,6 +14,9 @@ type QueryOptions struct {
 
 func (a *App) Query(opts QueryOptions) error {
 	cl, err := a.GetDBClient(opts.Context)
+	if err != nil {
+		return fmt.Errorf("unable to get database client: %w", err)
+	}
 
 	out, err := cl.Query(opts.Query)
 	if err != nil {
