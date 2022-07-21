@@ -56,7 +56,8 @@ func (a *App) Backup(opts BackupOptions) error {
 		return fmt.Errorf("unable to get storer: %w", err)
 	}
 
-	location, err := cl.Backup(name, dbSize, storer, true)
+	filename := fmt.Sprintf("%v-%v", context, name)
+	location, err := cl.Backup(filename, dbSize, storer, true)
 	if err != nil {
 		return fmt.Errorf("unable to backup database: %v: %w", name, err)
 	}

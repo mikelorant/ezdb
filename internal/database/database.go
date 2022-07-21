@@ -2,7 +2,6 @@ package database
 
 import (
 	"bytes"
-	"database/sql"
 	"database/sql/driver"
 	"fmt"
 	"io"
@@ -46,43 +45,6 @@ func NewClient(cfg *mysql.Config, dialer mysql.DialContextFunc) (*Client, error)
 		config:    cfg,
 		connector: con,
 	}, nil
-}
-
-func output(rows *sql.Rows) ([][]string, error) {
-	var out [][]string
-
-	cols, err := rows.Columns()
-	if err != nil {
-		return out, fmt.Errorf("unable to get columns: %w", err)
-	}
-	out = append(out, cols)
-
-	rawResult := make([][]byte, len(cols))
-
-	dest := make([]interface{}, len(cols))
-	for i := range rawResult {
-		dest[i] = &rawResult[i]
-	}
-
-	for rows.Next() {
-		result := []string{}
-		err = rows.Scan(dest...)
-		if err != nil {
-			return out, fmt.Errorf("unable to scan rows: %w", err)
-		}
-
-		for _, v := range rawResult {
-			if v == nil {
-				result = append(result, "")
-			} else {
-				result = append(result, string(v))
-			}
-		}
-
-		out = append(out, result)
-	}
-
-	return out, nil
 }
 
 func Format(rows [][]string) string {
