@@ -1,9 +1,12 @@
 package database
 
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
 	"log"
+
+	"github.com/rodaine/table"
 )
 
 func (cl *Client) Query(query string) ([][]string, error) {
@@ -25,6 +28,22 @@ func (cl *Client) Query(query string) ([][]string, error) {
 	}
 
 	return out, nil
+}
+
+func Format(rows [][]string) string {
+	var buffer bytes.Buffer
+
+	header := []interface{}{}
+	for _, c := range rows[0] {
+		header = append(header, c)
+	}
+
+	tbl := table.New(header...)
+	tbl.WithWriter(&buffer)
+	tbl.SetRows(rows[1:])
+	tbl.Print()
+
+	return buffer.String()
 }
 
 func output(rows *sql.Rows) ([][]string, error) {

@@ -1,19 +1,12 @@
 package database
 
 import (
-	"bytes"
 	"database/sql/driver"
 	"fmt"
 	"io"
-	"net"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/rodaine/table"
 )
-
-type Dialer interface {
-	Dial(network, address string) (net.Conn, error)
-}
 
 type Storer interface {
 	Store(data io.Reader, filename string, done chan bool, result chan string) error
@@ -45,20 +38,4 @@ func NewClient(cfg *mysql.Config, dialer mysql.DialContextFunc) (*Client, error)
 		config:    cfg,
 		connector: con,
 	}, nil
-}
-
-func Format(rows [][]string) string {
-	var buffer bytes.Buffer
-
-	header := []interface{}{}
-	for _, c := range rows[0] {
-		header = append(header, c)
-	}
-
-	tbl := table.New(header...)
-	tbl.WithWriter(&buffer)
-	tbl.SetRows(rows[1:])
-	tbl.Print()
-
-	return buffer.String()
 }
