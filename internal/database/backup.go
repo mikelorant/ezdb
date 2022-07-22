@@ -14,7 +14,7 @@ import (
 )
 
 type Shell interface {
-	Run(out io.Writer, cmd string) error
+	Run(out io.Writer, in io.Reader, cmd string) error
 }
 
 var (
@@ -85,7 +85,7 @@ func (cl *Client) BackupCompat(name string, size int64, storer Storer, shell She
 	})
 
 	log.Println("Command:", cl.getBackupCommand(true))
-	if err := shell.Run(dumpIn, cl.getBackupCommand(false)); err != nil {
+	if err := shell.Run(dumpIn, nil, cl.getBackupCommand(false)); err != nil {
 		return "", fmt.Errorf("unable to run command: %w", err)
 	}
 	dumpOut.Close()
