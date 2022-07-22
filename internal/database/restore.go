@@ -21,7 +21,7 @@ func (cl *Client) Restore(name, filename string, storer Storer, verbose bool) er
 	done := make(chan bool)
 
 	r, w := io.Pipe()
-	storer.Retrieve(w, filename, done)
+	storer.Retrieve(w, filename)
 	rb := bufio.NewReader(r)
 
 	scanner := bufio.NewScanner(rb)

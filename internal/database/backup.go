@@ -10,6 +10,7 @@ import (
 	"github.com/jamf/go-mysqldump"
 	"github.com/mikelorant/ezdb2/internal/compress"
 	"github.com/mikelorant/ezdb2/internal/progress"
+	"golang.org/x/sync/errgroup"
 )
 
 type Shell interface {
@@ -42,7 +43,7 @@ func (cl *Client) Backup(name string, size int64, storer Storer, verbose bool) (
 	dumpIn := io.MultiWriter(dumpOut, bar)
 	gzipOut := compress.NewGzipCompressor(gzipIn)
 
-	storer.Store(gzipOut, name, done, result)
+	storer.Store(gzipOut, name)
 
 	dumper := &mysqldump.Data{
 		Connection: db,
@@ -66,9 +67,6 @@ func (cl *Client) BackupCompat(name string, size int64, storer Storer, shell She
 	desc := "Dumping..."
 	bar := progress.New(size, desc, verbose)
 
-	done := make(chan bool)
-	result := make(chan string)
-
 	// mysqldump (w) -> (w) multiwriter (w) -> (w) progressbar
 	//                                      -> (w) pipe (r) -> (r) gzip (r) -> (r) storer
 
@@ -76,7 +74,15 @@ func (cl *Client) BackupCompat(name string, size int64, storer Storer, shell She
 	dumpIn := io.MultiWriter(dumpOut, bar)
 	gzipOut := compress.NewGzipCompressor(gzipIn)
 
-	storer.Store(gzipOut, name, done, result)
+	g := new(errgroup.Group)
+
+	result := make(chan string)
+
+	g.Go(func() error {
+		location, err := storer.Store(gzipOut, name)
+		result <- location
+		return err
+	})
 
 	log.Println("Command:", cl.getBackupCommand(true))
 	if err := shell.Run(dumpIn, cl.getBackupCommand(false)); err != nil {
@@ -85,7 +91,9 @@ func (cl *Client) BackupCompat(name string, size int64, storer Storer, shell She
 	dumpOut.Close()
 
 	location := <-result
-	<-done
+	if err := g.Wait(); err != nil {
+		return "", fmt.Errorf("store failure: %w", err)
+	}
 	bar.Finish()
 
 	return location, nil

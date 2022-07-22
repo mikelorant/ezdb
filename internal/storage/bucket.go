@@ -50,54 +50,41 @@ func NewBucketStorer(region, bucket, prefix string) (*BucketStore, error) {
 	}, nil
 }
 
-func (b *BucketStore) Store(data io.Reader, filename string, done chan bool, result chan string) error {
+func (b *BucketStore) Store(data io.Reader, filename string) (string, error) {
 	filename = fmt.Sprintf(FilenameFormat, filename)
 	filename = time.Now().Format(filename)
 	key := fmt.Sprintf("%v/%v", b.Prefix, filename)
 
-	go func() error {
-		out, err := b.uploader.Upload(context.Background(), &s3.PutObjectInput{
-			Bucket: aws.String(b.Bucket),
-			Key:    aws.String(key),
-			Body:   data,
-		})
-		if err != nil {
-			return fmt.Errorf("Unable to upload: %w", err)
-		}
+	out, err := b.uploader.Upload(context.Background(), &s3.PutObjectInput{
+		Bucket: aws.String(b.Bucket),
+		Key:    aws.String(key),
+		Body:   data,
+	})
+	if err != nil {
+		return "", fmt.Errorf("Unable to upload: %w", err)
+	}
 
-		result <- out.Location
-		done <- true
-
-		return nil
-	}()
-
-	return nil
+	return out.Location, nil
 }
 
-func (b *BucketStore) Retrieve(data io.WriteCloser, filename string, done chan bool) error {
+func (b *BucketStore) Retrieve(data io.WriteCloser, filename string) error {
 	key := fmt.Sprintf("%v/%v", b.Prefix, filename)
 
 	w := FakeWriterAt{
 		w: data,
 	}
 
-	go func() error {
-		_, err := b.downloader.Download(context.Background(), w,
-			&s3.GetObjectInput{
-				Bucket: aws.String(b.Bucket),
-				Key:    aws.String(key),
-			},
-		)
-		if err != nil {
-			return fmt.Errorf("Unable to download: %w", err)
-		}
+	_, err := b.downloader.Download(context.Background(), w,
+		&s3.GetObjectInput{
+			Bucket: aws.String(b.Bucket),
+			Key:    aws.String(key),
+		},
+	)
+	if err != nil {
+		return fmt.Errorf("Unable to download: %w", err)
+	}
 
-		data.Close()
-
-		done <- true
-
-		return nil
-	}()
+	data.Close()
 
 	return nil
 }

@@ -9,8 +9,8 @@ import (
 )
 
 type Storer interface {
-	Store(data io.Reader, filename string, done chan bool, result chan string) error
-	Retrieve(data io.WriteCloser, filename string, done chan bool) error
+	Store(data io.Reader, filename string) (string, error)
+	Retrieve(data io.WriteCloser, filename string) error
 	List() ([]string, error)
 }
 
