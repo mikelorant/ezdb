@@ -22,7 +22,7 @@ func (a *App) Run(opts RunOptions) error {
 	}
 
 	w := os.Stdout
-	err = sh.Run(w, nil, opts.Command)
+	err = sh.Run(w, nil, opts.Command, true)
 	if err != nil {
 		return fmt.Errorf("unable to run command: %w", err)
 	}

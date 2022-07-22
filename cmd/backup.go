@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/mikelorant/ezdb2/internal/app"
 	"github.com/spf13/cobra"
@@ -26,10 +26,10 @@ func NewBackupCmd() *cobra.Command {
 
 			a, err := app.New()
 			if err != nil {
-				return fmt.Errorf("unable to start app: %w", err)
+				log.Fatalf("unable to start app: %v", err)
 			}
 			if err := a.Backup(opts); err != nil {
-				return fmt.Errorf("unable to backup database: %w", err)
+				log.Fatalf("unable to backup database: %v", err)
 			}
 
 			return nil

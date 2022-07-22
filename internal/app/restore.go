@@ -41,6 +41,11 @@ func (a *App) Restore(opts RestoreOptions) error {
 		return fmt.Errorf("unable to get database client: %w", err)
 	}
 
+	shell, err := a.GetShell(context)
+	if err != nil {
+		return fmt.Errorf("unable to get a shell: %w", err)
+	}
+
 	storer, err := GetStorer(storeCfg)
 	if err != nil {
 		return fmt.Errorf("unable to get storer: %w", err)
@@ -55,8 +60,9 @@ func (a *App) Restore(opts RestoreOptions) error {
 		return fmt.Errorf("unable to select a file: %w", err)
 	}
 
-	if err := cl.Restore(opts.Name, filename, storer, true); err != nil {
-		return fmt.Errorf("unable to backup database: %v: %w", opts.Name, err)
+	_, err = cl.RestoreCompat(opts.Name, filename, storer, shell, true)
+	if err != nil {
+		return fmt.Errorf("unable to restore database: %v: %w", opts.Name, err)
 	}
 
 	log.Println("Database successfully restored.")

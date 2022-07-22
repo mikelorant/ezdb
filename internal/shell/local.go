@@ -3,9 +3,11 @@ package shell
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"os/exec"
+	"syscall"
 
 	"golang.org/x/sync/errgroup"
 )
@@ -16,24 +18,30 @@ func NewLocalShell() *LocalShell {
 	return &LocalShell{}
 }
 
-func (s LocalShell) Run(out io.Writer, in io.Reader, cmd string) error {
+func (s LocalShell) Run(out io.Writer, in io.Reader, cmd string, combinedOutput bool) error {
 	if in == nil {
 		in = new(bytes.Buffer)
 	}
 
 	c := exec.Command("sh", "-c", cmd)
 
-	r, err := c.StdoutPipe()
+	stdout, err := c.StdoutPipe()
 	if err != nil {
 		return fmt.Errorf("unable to create stdout pipe: %w", err)
 	}
-	rb := bufio.NewReader(r)
+	stdoutBuffer := bufio.NewReader(stdout)
 
-	w, err := c.StdinPipe()
+	stderr, err := c.StderrPipe()
+	if err != nil {
+		return fmt.Errorf("unable to create stderr pipe: %w", err)
+	}
+	stderrBuffer := bufio.NewReader(stderr)
+
+	stdin, err := c.StdinPipe()
 	if err != nil {
 		return fmt.Errorf("unable to create stdin pipe: %w", err)
 	}
-	wb := bufio.NewWriter(w)
+	stdinBuffer := bufio.NewWriter(stdin)
 
 	if err := c.Start(); err != nil {
 		return fmt.Errorf("unable to run command: %w", err)
@@ -42,12 +50,23 @@ func (s LocalShell) Run(out io.Writer, in io.Reader, cmd string) error {
 	g := new(errgroup.Group)
 
 	g.Go(func() error {
-		_, err := io.Copy(out, rb)
+		_, err := io.Copy(out, stdoutBuffer)
 		return err
 	})
 
+	if combinedOutput {
+		g.Go(func() error {
+			_, err := io.Copy(out, stderrBuffer)
+			return err
+		})
+	}
+
 	g.Go(func() error {
-		_, err := io.Copy(wb, in)
+		_, err := io.Copy(stdinBuffer, in)
+		stdin.Close()
+		if errors.Is(err, syscall.EPIPE) {
+			return nil
+		}
 		return err
 	})
 

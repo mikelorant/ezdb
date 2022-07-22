@@ -8,7 +8,7 @@ import (
 )
 
 type Shell interface {
-	Run(out io.Writer, in io.Reader, cmd string) error
+	Run(out io.Writer, in io.Reader, cmd string, combinedOutput bool) error
 }
 
 func (a *App) GetShell(context string) (Shell, error) {
