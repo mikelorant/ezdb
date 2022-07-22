@@ -47,10 +47,12 @@ func (a *App) GetDBClient(context string, dbOpts ...func(*DBOptions)) (*database
 	db, tun := a.Config.getContext(context)
 
 	dbcfg := getDBConfig(db, tun, dbOptions.name)
+
 	dial, err := getDialerFunc(tun)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get dialer function: %w", err)
 	}
+
 	cl, err := database.NewClient(dbcfg, dial)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get new client: %w", err)

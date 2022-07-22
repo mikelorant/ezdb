@@ -78,9 +78,8 @@ func (cl *Client) BackupCompat(name string, size int64, storer Storer, shell She
 
 	storer.Store(gzipOut, name, done, result)
 
-	cmd := cl.getBackupCommand()
-	log.Println("Command:", cmd)
-	if err := shell.Run(dumpIn, cmd); err != nil {
+	log.Println("Command:", cl.getBackupCommand(true))
+	if err := shell.Run(dumpIn, cl.getBackupCommand(false)); err != nil {
 		return "", fmt.Errorf("unable to run command: %w", err)
 	}
 	dumpOut.Close()
@@ -92,7 +91,7 @@ func (cl *Client) BackupCompat(name string, size int64, storer Storer, shell She
 	return location, nil
 }
 
-func (cl *Client) getBackupCommand() string {
+func (cl *Client) getBackupCommand(hidden bool) string {
 	var cmd []string
 
 	cmd = append(cmd, MySQLDumpCommand)
@@ -102,7 +101,11 @@ func (cl *Client) getBackupCommand() string {
 	}
 
 	if password := cl.config.Passwd; password != "" {
-		cmd = append(cmd, fmt.Sprintf("--password=%v", password))
+		if hidden {
+			cmd = append(cmd, fmt.Sprintf("--password=%v", strings.Repeat("*", len(password))))
+		} else {
+			cmd = append(cmd, fmt.Sprintf("--password=%v", password))
+		}
 	}
 
 	hostPort := strings.Split(cl.config.Addr, ":")

@@ -5,10 +5,6 @@ import (
 	"os"
 )
 
-// type Shell interface {
-// 	Run(out io.WriteCloser, cmd string) error
-// }
-
 type RunOptions struct {
 	Context string
 	Command string
