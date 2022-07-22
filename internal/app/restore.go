@@ -23,6 +23,16 @@ func (a *App) Restore(opts RestoreOptions) error {
 		return fmt.Errorf("unable to get database client: %w", err)
 	}
 
+	if cl.IsDatabase(opts.Name) {
+		log.Println("Found existing database:", opts.Name)
+		log.Println("Press enter to drop database.")
+		fmt.Scanln()
+
+		if err := cl.DropDatabase(opts.Name); err != nil {
+			return fmt.Errorf("unable to drop target database: %v: %w", opts.Name, err)
+		}
+	}
+
 	if err := cl.CreateDatabase(opts.Name); err != nil {
 		return fmt.Errorf("unable to create database: %v: %w", opts.Name, err)
 	}

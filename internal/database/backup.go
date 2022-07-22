@@ -23,6 +23,7 @@ var (
 		"--compress",
 		"--column-statistics=0",
 		"--ssl-mode=preferred",
+		"--set-gtid-purged=OFF",
 	}
 )
 

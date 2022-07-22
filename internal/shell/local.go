@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"syscall"
 
@@ -57,6 +58,11 @@ func (s LocalShell) Run(out io.Writer, in io.Reader, cmd string, combinedOutput 
 	if combinedOutput {
 		g.Go(func() error {
 			_, err := io.Copy(out, stderrBuffer)
+			return err
+		})
+	} else {
+		g.Go(func() error {
+			_, err := io.Copy(os.Stderr, stderrBuffer)
 			return err
 		})
 	}

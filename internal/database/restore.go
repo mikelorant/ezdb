@@ -9,14 +9,14 @@ import (
 	"log"
 	"strings"
 
+	"github.com/icholy/replace"
 	"github.com/mikelorant/ezdb2/internal/compress"
 	"github.com/mikelorant/ezdb2/internal/progress"
 	"golang.org/x/sync/errgroup"
+	"golang.org/x/text/transform"
 )
 
-type RestoreReader interface {
-	io.Reader
-}
+type ReplacePairs [2]string
 
 var (
 	MySQLRestoreCommand = "mysql"
@@ -25,6 +25,7 @@ var (
 		"--ssl-mode=preferred",
 		"--protocol=tcp",
 	}
+	MySQLRestoreReplaceUTF = ReplacePairs{"utf8mb4_0900_ai_ci", "utf8mb4_unicode_ci"}
 )
 
 func (cl *Client) Restore(name, filename string, storer Storer, verbose bool) error {
@@ -81,7 +82,7 @@ func (cl *Client) Restore(name, filename string, storer Storer, verbose bool) er
 
 		// If the line has a suffix of ";" we execute the query
 		if strings.HasSuffix(text, ";") {
-			res, err := tx.Exec(sanitise(query))
+			res, err := tx.Exec(query)
 			if err != nil {
 				tx.Rollback()
 				return fmt.Errorf("transaction failed: %w", err)
@@ -115,20 +116,20 @@ func (cl *Client) RestoreCompat(name, filename string, storer Storer, shell Shel
 	var buf bytes.Buffer
 
 	// storer (w) -> (w) pipe (r) -> (r) teereader (w) -> (w) progressbar
-	// 			     			                   (r) -> (r) buffer (r) -> (r) gzip (r) -> mysql
+	// 			     			                   (r) -> (r) buffer (r) -> (r) gzip (r) -> (r) replacer (r) -> (r) mysql
 
-	r, w := io.Pipe()
-	tr := io.TeeReader(r, bar)
+	pr, pw := io.Pipe()
+	tr := io.TeeReader(pr, bar)
 	rb := bufio.NewReader(tr)
 
 	g := new(errgroup.Group)
 
 	g.Go(func() error {
-		return storer.Retrieve(w, filename)
+		return storer.Retrieve(pw, filename)
 	})
 
-	var rr RestoreReader
-	rr = rb
+	var r io.Reader
+	r = rb
 
 	gz, err := rb.Peek(2)
 	if err != nil {
@@ -136,8 +137,12 @@ func (cl *Client) RestoreCompat(name, filename string, storer Storer, shell Shel
 	}
 	if gz[0] == 31 && gz[1] == 139 {
 		rs := compress.NewGzipDecompressor(rb)
-		rr = rs
+		r = rs
 	}
+
+	rr := transform.NewReader(r, transform.Chain(
+		getTransformer(MySQLRestoreReplaceUTF),
+	))
 
 	log.Println("Command:", cl.getRestoreCommand(true))
 	if err := shell.Run(&buf, rr, cl.getRestoreCommand(false), true); err != nil {
@@ -188,14 +193,17 @@ func (cl *Client) getRestoreCommand(hidden bool) string {
 	return strings.Join(cmd, " ")
 }
 
-// TODO: make generic
-func sanitise(str string) string {
-	substr := "DEFINER=`admin`@`%`"
-	newstr := "DEFINER=`infra01`@`%`"
-
-	if strings.Contains(str, substr) {
-		return strings.Replace(str, substr, newstr, 1)
-	}
-
-	return str
+func getTransformer(r ReplacePairs) transform.Transformer {
+	return replace.String(r[0], r[1])
 }
+
+// func replace(r [2]string) transform.Transformer {
+// 	substr := "DEFINER=`admin`@`%`"
+// 	newstr := "DEFINER=`infra01`@`%`"
+//
+// 	if strings.Contains(str, substr) {
+// 		return strings.Replace(str, substr, newstr, 1)
+// 	}
+//
+// 	return str
+// }
