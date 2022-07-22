@@ -45,3 +45,17 @@ func makeTunnel(tun *Tunnel) (*ssh.Client, error) {
 
 	return t.Client(), nil
 }
+
+func getTunnelSession(tun *Tunnel) (*ssh.Session, error) {
+	tunnel, err := makeTunnel(tun)
+	if err != nil {
+		return nil, fmt.Errorf("unable to make tunnel: %w", err)
+	}
+
+	sess, err := tunnel.NewSession()
+	if err != nil {
+		return nil, fmt.Errorf("unable to create a tunnel session: %w", err)
+	}
+
+	return sess, nil
+}

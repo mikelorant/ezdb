@@ -4,10 +4,25 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
+	"log"
+	"strings"
 
 	"github.com/jamf/go-mysqldump"
 	"github.com/mikelorant/ezdb2/internal/compress"
 	"github.com/mikelorant/ezdb2/internal/progress"
+)
+
+type Shell interface {
+	Run(out io.Writer, cmd string) error
+}
+
+var (
+	MySQLDumpCommand = "mysqldump"
+	MySQLDumpOptions = []string{
+		"--compress",
+		"--column-statistics=0",
+		"--ssl-mode=preferred",
+	}
 )
 
 func (cl *Client) Backup(name string, size int64, storer Storer, verbose bool) (string, error) {
@@ -42,4 +57,60 @@ func (cl *Client) Backup(name string, size int64, storer Storer, verbose bool) (
 	bar.Finish()
 
 	return location, nil
+}
+
+func (cl *Client) BackupCompat(name string, size int64, storer Storer, shell Shell, verbose bool) (string, error) {
+	db := sql.OpenDB(cl.connector)
+	defer db.Close()
+
+	desc := "Dumping..."
+	bar := progress.New(size, desc, verbose)
+
+	done := make(chan bool)
+	result := make(chan string)
+
+	// mysqldump (w) -> (w) multiwriter (w) -> (w) progressbar
+	//                                      -> (w) pipe (r) -> (r) gzip (r) -> (r) storer
+
+	gzipIn, dumpOut := io.Pipe()
+	dumpIn := io.MultiWriter(dumpOut, bar)
+	gzipOut := compress.NewGzipCompressor(gzipIn)
+
+	storer.Store(gzipOut, name, done, result)
+
+	cmd := cl.getBackupCommand()
+	log.Println("Command:", cmd)
+	if err := shell.Run(dumpIn, cmd); err != nil {
+		return "", fmt.Errorf("unable to run command: %w", err)
+	}
+	dumpOut.Close()
+
+	location := <-result
+	<-done
+	bar.Finish()
+
+	return location, nil
+}
+
+func (cl *Client) getBackupCommand() string {
+	var cmd []string
+
+	cmd = append(cmd, MySQLDumpCommand)
+
+	if user := cl.config.User; user != "" {
+		cmd = append(cmd, fmt.Sprintf("--user=%v", user))
+	}
+
+	if password := cl.config.Passwd; password != "" {
+		cmd = append(cmd, fmt.Sprintf("--password=%v", password))
+	}
+
+	hostPort := strings.Split(cl.config.Addr, ":")
+	cmd = append(cmd, fmt.Sprintf("--host=%v --port=%v", hostPort[0], hostPort[1]))
+
+	cmd = append(cmd, MySQLDumpOptions...)
+
+	cmd = append(cmd, cl.config.DBName)
+
+	return strings.Join(cmd, " ")
 }

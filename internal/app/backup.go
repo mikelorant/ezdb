@@ -51,13 +51,18 @@ func (a *App) Backup(opts BackupOptions) error {
 		return fmt.Errorf("unable to get database size: %w", err)
 	}
 
+	shell, err := a.GetShell(context)
+	if err != nil {
+		return fmt.Errorf("unable to get a shell: %w", err)
+	}
+
 	storer, err := GetStorer(storeCfg)
 	if err != nil {
 		return fmt.Errorf("unable to get storer: %w", err)
 	}
 
 	filename := fmt.Sprintf("%v-%v", context, name)
-	location, err := cl.Backup(filename, dbSize, storer, true)
+	location, err := cl.BackupCompat(filename, dbSize, storer, shell, true)
 	if err != nil {
 		return fmt.Errorf("unable to backup database: %v: %w", name, err)
 	}

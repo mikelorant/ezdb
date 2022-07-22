@@ -8,27 +8,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewQueryCmd() *cobra.Command {
-	var (
-		context string
-		name    string
-	)
+func NewRunCmd() *cobra.Command {
+	var context string
 
 	cmd := &cobra.Command{
-		Use:   "query",
+		Use:   "run",
 		Short: "A brief description of your command",
 		Args:  cobra.MinimumNArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			opts := app.QueryOptions{
+			opts := app.RunOptions{
 				Context: context,
-				Name:    name,
-				Query:   strings.Join(args, " "),
+				Command: strings.Join(args, " "),
 			}
 			a, err := app.New()
 			if err != nil {
 				return fmt.Errorf("unable to start app: %w", err)
 			}
-			if err := a.Query(opts); err != nil {
+			if err := a.Run(opts); err != nil {
 				return fmt.Errorf("unable to query: %w", err)
 			}
 
@@ -38,7 +34,6 @@ func NewQueryCmd() *cobra.Command {
 
 	cmd.Flags().SortFlags = false
 	cmd.Flags().StringVar(&context, "context", "", "Database context")
-	cmd.Flags().StringVar(&name, "name", "", "Database name")
 
 	return cmd
 }
