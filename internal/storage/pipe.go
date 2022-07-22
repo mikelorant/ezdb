@@ -22,8 +22,7 @@ func NewPipeStorer() (*PipeStore, error) {
 func (p *PipeStore) Store(data io.Reader, filename string) (string, error) {
 	defer p.writer.Close()
 
-	_, err := io.Copy(p.writer, data)
-	if err != nil {
+	if _, err := io.Copy(p.writer, data); err != nil {
 		return "", fmt.Errorf("unable to write to pipe: %w", err)
 	}
 
@@ -31,8 +30,7 @@ func (p *PipeStore) Store(data io.Reader, filename string) (string, error) {
 }
 
 func (p *PipeStore) Retrieve(data io.WriteCloser, filename string) error {
-	_, err := io.Copy(data, p.reader)
-	if err != nil {
+	if _, err := io.Copy(data, p.reader); err != nil {
 		return fmt.Errorf("unable to read from pipe: %w", err)
 	}
 	data.Close()
