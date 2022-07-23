@@ -39,6 +39,7 @@ func (a *App) Restore(opts RestoreOptions) error {
 	if err != nil {
 		return fmt.Errorf("unable to list store: %w", err)
 	}
+
 	filename, err := Select(opts.Filename, filenames, "Choose a file:")
 	if err != nil {
 		return fmt.Errorf("unable to select a file: %w", err)
@@ -70,7 +71,7 @@ func (a *App) Restore(opts RestoreOptions) error {
 		return fmt.Errorf("unable to get a shell: %w", err)
 	}
 
-	_, err = cl.RestoreCompat(opts.Name, filename, storer, shell, true)
+	_, err = cl.Restore(opts.Name, filename, storer, shell, true)
 	if err != nil {
 		return fmt.Errorf("unable to restore database: %v: %w", opts.Name, err)
 	}

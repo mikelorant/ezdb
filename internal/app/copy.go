@@ -54,6 +54,11 @@ func (a *App) Copy(opts CopyOptions) error {
 		return fmt.Errorf("unable to get source database size: %w", err)
 	}
 
+	fromShell, err := a.GetShell(fromContext)
+	if err != nil {
+		return fmt.Errorf("unable to get a source shell: %w", err)
+	}
+
 	toClient, err := a.GetDBClient(toContext)
 	if err != nil {
 		return fmt.Errorf("unable to get source database client: %w", err)
@@ -80,6 +85,11 @@ func (a *App) Copy(opts CopyOptions) error {
 		return fmt.Errorf("unable to get target database client: %w", err)
 	}
 
+	toShell, err := a.GetShell(toContext)
+	if err != nil {
+		return fmt.Errorf("unable to get a target shell: %w", err)
+	}
+
 	storer, err := GetStorer(&Store{
 		Type: "pipe",
 	})
@@ -90,7 +100,7 @@ func (a *App) Copy(opts CopyOptions) error {
 	g := new(errgroup.Group)
 
 	g.Go(func() error {
-		if _, err := fromClient.Backup(fromName, fromDBSize, storer, true); err != nil {
+		if _, err := fromClient.Backup(fromName, fromDBSize, storer, fromShell, true); err != nil {
 			return fmt.Errorf("unable to backup source database: %v: %w", fromName, err)
 		}
 
@@ -98,7 +108,7 @@ func (a *App) Copy(opts CopyOptions) error {
 	})
 
 	g.Go(func() error {
-		if err := toClient.Restore(toName, "", storer, false); err != nil {
+		if _, err := toClient.Restore(toName, "", storer, toShell, false); err != nil {
 			return fmt.Errorf("unable to restore target database: %v: %w", toName, err)
 		}
 
