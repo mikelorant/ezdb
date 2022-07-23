@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"regexp"
 	"strings"
 
 	"github.com/icholy/replace"
@@ -16,7 +17,7 @@ import (
 	"golang.org/x/text/transform"
 )
 
-type ReplacePairs [2]string
+type ReplaceRegexpString [2]string
 
 var (
 	MySQLRestoreCommand = "mysql"
@@ -25,7 +26,8 @@ var (
 		"--ssl-mode=preferred",
 		"--protocol=tcp",
 	}
-	MySQLRestoreReplaceUTF = ReplacePairs{"utf8mb4_0900_ai_ci", "utf8mb4_unicode_ci"}
+	MySQLRestoreReplaceUTF     = ReplaceRegexpString{"utf8mb4_0900_ai_ci", "utf8mb4_unicode_ci"}
+	MySQLRestoreReplaceDefiner = ReplaceRegexpString{"DEFINER=[^ *]+", "DEFINER=CURRENT_USER"}
 )
 
 func (cl *Client) Restore(name, filename string, storer Storer, verbose bool) error {
@@ -142,6 +144,7 @@ func (cl *Client) RestoreCompat(name, filename string, storer Storer, shell Shel
 
 	rr := transform.NewReader(r, transform.Chain(
 		getTransformer(MySQLRestoreReplaceUTF),
+		getTransformer(MySQLRestoreReplaceDefiner),
 	))
 
 	log.Println("Command:", cl.getRestoreCommand(true))
@@ -193,17 +196,6 @@ func (cl *Client) getRestoreCommand(hidden bool) string {
 	return strings.Join(cmd, " ")
 }
 
-func getTransformer(r ReplacePairs) transform.Transformer {
-	return replace.String(r[0], r[1])
+func getTransformer(r ReplaceRegexpString) transform.Transformer {
+	return replace.RegexpString(regexp.MustCompile(r[0]), r[1])
 }
-
-// func replace(r [2]string) transform.Transformer {
-// 	substr := "DEFINER=`admin`@`%`"
-// 	newstr := "DEFINER=`infra01`@`%`"
-//
-// 	if strings.Contains(str, substr) {
-// 		return strings.Replace(str, substr, newstr, 1)
-// 	}
-//
-// 	return str
-// }
