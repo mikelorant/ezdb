@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/go-sql-driver/mysql"
-	"github.com/mikelorant/ezdb2/internal/database"
+	"github.com/mikelorant/ezdb2/internal/database/mysqlshim"
 	"github.com/mikelorant/ezdb2/internal/structprinter"
 )
 
@@ -38,7 +38,7 @@ func WithDBName(name string) func(*DBOptions) {
 	}
 }
 
-func (a *App) GetDBClient(context string, dbOpts ...func(*DBOptions)) (*database.Client, error) {
+func (a *App) GetDBClient(context string, dbOpts ...func(*DBOptions)) (*mysqlshim.Client, error) {
 	var dbOptions DBOptions
 	for _, o := range dbOpts {
 		o(&dbOptions)
@@ -53,7 +53,7 @@ func (a *App) GetDBClient(context string, dbOpts ...func(*DBOptions)) (*database
 		return nil, fmt.Errorf("unable to get dialer function: %w", err)
 	}
 
-	cl, err := database.NewClient(dbcfg, dial)
+	cl, err := mysqlshim.NewClient(dbcfg, dial)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get new client: %w", err)
 	}

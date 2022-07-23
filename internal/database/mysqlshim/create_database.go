@@ -1,15 +1,15 @@
-package database
+package mysqlshim
 
 import (
 	"database/sql"
 	"fmt"
 )
 
-func (cl *Client) DropDatabase(name string) error {
+func (cl *Client) CreateDatabase(name string) error {
 	db := sql.OpenDB(cl.connector)
 	defer db.Close()
 
-	q := fmt.Sprintf("DROP DATABASE IF EXISTS %v;", name)
+	q := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %v;", name)
 
 	tx, err := db.Begin()
 	if err != nil {

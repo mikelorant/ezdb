@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/mikelorant/ezdb2/internal/database"
+	"github.com/mikelorant/ezdb2/internal/database/mysqlshim"
 	"github.com/mikelorant/ezdb2/internal/password"
 )
 
@@ -41,7 +41,7 @@ func (a *App) CreateUser(opts CreateUserOptions) error {
 		return fmt.Errorf("unable to query: %w", err)
 	}
 
-	fmt.Print(database.Format(out))
+	fmt.Print(mysqlshim.Format(out))
 
 	log.Printf("Created user: %v with grants for database: %v\n", opts.Name, opts.Database)
 	if opts.Password == "" {

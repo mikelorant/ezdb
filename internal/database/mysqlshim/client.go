@@ -1,4 +1,4 @@
-package database
+package mysqlshim
 
 import (
 	"database/sql/driver"

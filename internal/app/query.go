@@ -3,7 +3,7 @@ package app
 import (
 	"fmt"
 
-	"github.com/mikelorant/ezdb2/internal/database"
+	"github.com/mikelorant/ezdb2/internal/database/mysqlshim"
 )
 
 type QueryOptions struct {
@@ -45,7 +45,7 @@ func (a *App) Query(opts QueryOptions) error {
 		return fmt.Errorf("unable to query: %w", err)
 	}
 
-	fmt.Print(database.Format(out))
+	fmt.Print(mysqlshim.Format(out))
 
 	return nil
 }
