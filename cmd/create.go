@@ -14,6 +14,7 @@ func NewCreateCmd() *cobra.Command {
 	}
 
 	cmd.AddCommand(NewCreateUserCmd())
+	cmd.AddCommand(NewCreateDatabaseCmd())
 
 	return cmd
 }
@@ -56,6 +57,36 @@ func NewCreateUserCmd() *cobra.Command {
 	cmd.Flags().StringVar(&database, "database", "", "Database grant for user")
 	cmd.MarkFlagRequired("name")
 	cmd.MarkFlagRequired("database")
+
+	return cmd
+}
+
+func NewCreateDatabaseCmd() *cobra.Command {
+	var context string
+
+	cmd := &cobra.Command{
+		Use:   "database",
+		Short: "A brief description of your command",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			opts := app.CreateDatabaseOptions{
+				Context: context,
+				Name:    args[0],
+			}
+			a, err := app.New()
+			if err != nil {
+				log.Fatalf("unable to start app: %v", err)
+			}
+			if err := a.CreateDatabase(opts); err != nil {
+				log.Fatalf("unable to create database: %v", err)
+			}
+
+			return nil
+		},
+	}
+
+	cmd.Flags().SortFlags = false
+	cmd.Flags().StringVar(&context, "context", "", "Database context")
 
 	return cmd
 }

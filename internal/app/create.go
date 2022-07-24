@@ -14,6 +14,11 @@ type CreateUserOptions struct {
 	Database string
 }
 
+type CreateDatabaseOptions struct {
+	Context string
+	Name    string
+}
+
 func (a *App) CreateUser(opts CreateUserOptions) error {
 	context, err := Select(opts.Context, a.Config.getContexts(), "Choose a context:")
 	if err != nil {
@@ -41,6 +46,26 @@ func (a *App) CreateUser(opts CreateUserOptions) error {
 	if opts.Password == "" {
 		log.Printf("No password provided. Generated password is: %v\n", pass)
 	}
+
+	return nil
+}
+
+func (a *App) CreateDatabase(opts CreateDatabaseOptions) error {
+	context, err := Select(opts.Context, a.Config.getContexts(), "Choose a context:")
+	if err != nil {
+		return fmt.Errorf("unable to select a context: %w", err)
+	}
+
+	cl, err := a.GetDBClient(context)
+	if err != nil {
+		return fmt.Errorf("unable to get database client: %w", err)
+	}
+
+	if err := cl.CreateDatabase(opts.Name); err != nil {
+		return fmt.Errorf("unable to create database: %w", err)
+	}
+
+	log.Printf("Created database: %v\n", opts.Name)
 
 	return nil
 }
