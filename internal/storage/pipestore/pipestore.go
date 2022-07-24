@@ -1,4 +1,4 @@
-package storage
+package pipestore
 
 import (
 	"fmt"
@@ -10,7 +10,7 @@ type PipeStore struct {
 	writer *io.PipeWriter
 }
 
-func NewPipeStorer() (*PipeStore, error) {
+func New() (*PipeStore, error) {
 	r, w := io.Pipe()
 
 	return &PipeStore{

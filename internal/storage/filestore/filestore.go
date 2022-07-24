@@ -1,4 +1,4 @@
-package storage
+package filestore
 
 import (
 	"fmt"
@@ -21,7 +21,7 @@ const (
 	FilenameFormat = "%v-20060102-150405.sql.gz"
 )
 
-func NewFileStorer(directory string) (*FileStore, error) {
+func New(directory string) (*FileStore, error) {
 	if err := os.MkdirAll(directory, 0o755); err != nil {
 		return nil, fmt.Errorf("Error mkdir: %v: %w", directory, err)
 	}

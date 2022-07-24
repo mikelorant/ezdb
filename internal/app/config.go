@@ -48,15 +48,6 @@ func (c *Config) load() error {
 	return nil
 }
 
-func (c *Config) getContext(context string) (database *Database, tunnel *Tunnel) {
-	db := c.getDatabase(context)
-	if db.Tunnel == "" {
-		return db, nil
-	}
-
-	return db, c.getTunnel(db.Tunnel)
-}
-
 func (c *Config) getContexts() []string {
 	var res []string
 	for _, v := range c.Databases {
@@ -71,6 +62,15 @@ func (c *Config) getStores() []string {
 		res = append(res, v.Name)
 	}
 	return res
+}
+
+func (c *Config) getContext(context string) (database *Database, tunnel *Tunnel) {
+	db := c.getDatabase(context)
+	if db.Tunnel == "" {
+		return db, nil
+	}
+
+	return db, c.getTunnel(db.Tunnel)
 }
 
 func (c *Config) getDatabase(context string) *Database {

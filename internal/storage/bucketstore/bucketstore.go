@@ -1,4 +1,4 @@
-package storage
+package bucketstore
 
 import (
 	"context"
@@ -30,7 +30,11 @@ type BucketOptions struct {
 	Filename string
 }
 
-func NewBucketStorer(region, bucket, prefix string) (*BucketStore, error) {
+const (
+	FilenameFormat = "%v-20060102-150405.sql.gz"
+)
+
+func New(region, bucket, prefix string) (*BucketStore, error) {
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region))
 	if err != nil {
 		return nil, fmt.Errorf("unable to load AWS config: %w", err)

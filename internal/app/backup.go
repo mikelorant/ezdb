@@ -6,10 +6,17 @@ import (
 	"log"
 
 	"github.com/mikelorant/ezdb2/internal/compress"
-	"github.com/mikelorant/ezdb2/internal/database"
 	"github.com/mikelorant/ezdb2/internal/progress"
 	"golang.org/x/sync/errgroup"
 )
+
+type Storer interface {
+	Store(data io.Reader, filename string) (string, error)
+}
+
+type Backuper interface {
+	BackupCommand(verbose bool) string
+}
 
 type BackupOptions struct {
 	Context string
@@ -43,9 +50,7 @@ func (a *App) Backup(opts BackupOptions) error {
 		return fmt.Errorf("unable to select a store: %w", err)
 	}
 
-	storeCfg := a.Config.getStore(store)
-
-	storer, err := GetStorer(storeCfg)
+	storer, err := a.GetStorageClient(store)
 	if err != nil {
 		return fmt.Errorf("unable to get storer: %w", err)
 	}
@@ -79,7 +84,7 @@ func (a *App) Backup(opts BackupOptions) error {
 	return nil
 }
 
-func backup(cl *database.Database, name string, size int64, storer Storer, shell Shell, verbose bool) (string, error) {
+func backup(cmd Backuper, name string, size int64, storer Storer, shell Shell, verbose bool) (string, error) {
 	desc := "Dumping..."
 	bar := progress.New(size, desc, verbose)
 
@@ -101,10 +106,10 @@ func backup(cl *database.Database, name string, size int64, storer Storer, shell
 	})
 
 	if verbose {
-		log.Println("Command:", cl.BackupCommand(true))
+		log.Println("Command:", cmd.BackupCommand(true))
 	}
 
-	if err := shell.Run(dumpIn, nil, cl.BackupCommand(false), false); err != nil {
+	if err := shell.Run(dumpIn, nil, cmd.BackupCommand(false), false); err != nil {
 		return "", fmt.Errorf("unable to run command: %w", err)
 	}
 	dumpOut.Close()

@@ -10,11 +10,18 @@ import (
 
 	"github.com/icholy/replace"
 	"github.com/mikelorant/ezdb2/internal/compress"
-	"github.com/mikelorant/ezdb2/internal/database"
 	"github.com/mikelorant/ezdb2/internal/progress"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/text/transform"
 )
+
+type Retriever interface {
+	Retrieve(data io.WriteCloser, filename string) error
+}
+
+type Restorer interface {
+	RestoreCommand(verbose bool) string
+}
 
 type RestoreOptions struct {
 	Context  string
@@ -39,9 +46,7 @@ func (a *App) Restore(opts RestoreOptions) error {
 		return fmt.Errorf("unable to select a store: %w", err)
 	}
 
-	storeCfg := a.Config.getStore(store)
-
-	storer, err := GetStorer(storeCfg)
+	storer, err := a.GetStorageClient(store)
 	if err != nil {
 		return fmt.Errorf("unable to get storer: %w", err)
 	}
@@ -99,7 +104,7 @@ var (
 	MySQLRestoreReplaceDefiner = ReplaceRegexpString{"DEFINER=[^ *]+", "DEFINER=CURRENT_USER"}
 )
 
-func restore(cl *database.Database, name, filename string, storer Storer, shell Shell, verbose bool) ([]byte, error) {
+func restore(cmd Restorer, name, filename string, retriever Retriever, shell Shell, verbose bool) ([]byte, error) {
 	desc := "Restoring..."
 	bar := progress.New(-1, desc, verbose)
 
@@ -115,7 +120,7 @@ func restore(cl *database.Database, name, filename string, storer Storer, shell 
 	g := new(errgroup.Group)
 
 	g.Go(func() error {
-		return storer.Retrieve(pw, filename)
+		return retriever.Retrieve(pw, filename)
 	})
 
 	var r io.Reader
@@ -136,10 +141,10 @@ func restore(cl *database.Database, name, filename string, storer Storer, shell 
 	))
 
 	if verbose {
-		log.Println("Command:", cl.RestoreCommand(true))
+		log.Println("Command:", cmd.RestoreCommand(true))
 	}
 
-	if err := shell.Run(&buf, rr, cl.RestoreCommand(false), true); err != nil {
+	if err := shell.Run(&buf, rr, cmd.RestoreCommand(false), true); err != nil {
 		bar.Finish()
 		out, _ := io.ReadAll(&buf)
 		fmt.Print(string(out))

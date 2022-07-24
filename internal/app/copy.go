@@ -90,9 +90,7 @@ func (a *App) Copy(opts CopyOptions) error {
 		return fmt.Errorf("unable to get a target shell: %w", err)
 	}
 
-	storer, err := GetStorer(&Store{
-		Type: "pipe",
-	})
+	storer, err := a.GetStorageClient("pipe")
 	if err != nil {
 		return fmt.Errorf("unable to get storer: %w", err)
 	}
