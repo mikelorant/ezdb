@@ -10,6 +10,7 @@ services:
     volumes:
     - ${PWD}/.ezdb.yaml:/root/.ezdb.yaml
     - ${PWD}/dumps/:/root/dumps/
+    - ${HOME}/.ssh:/root/.ssh
 
   database1:
     image: mariadb:10.8.3

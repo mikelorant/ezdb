@@ -2,7 +2,9 @@ package app
 
 import (
 	"fmt"
+	"io"
 	"os"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -32,7 +34,14 @@ func (c *Config) load() error {
 		return fmt.Errorf("unable to read config file: %v: %w", ConfigFile, err)
 	}
 
-	if err := yaml.NewDecoder(file).Decode(c); err != nil {
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return fmt.Errorf("unable to read contents of config file: %w", err)
+	}
+
+	r := strings.NewReader(os.ExpandEnv(string(data)))
+
+	if err := yaml.NewDecoder(r).Decode(c); err != nil {
 		return fmt.Errorf("unable to decode config file: %v: %w", ConfigFile, err)
 	}
 
