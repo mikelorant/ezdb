@@ -12,11 +12,12 @@ import (
 )
 
 type Shim struct {
-	DB *sql.DB
+	DB  *sql.DB
+	cfg *pgx.ConnConfig
 }
 
 const (
-	EmptyPostgresURL = "postgresql://?sslmode=prefer"
+	EmptyPostgresURL = "postgresql://"
 )
 
 func New(cfg *pgx.ConnConfig, dialFunc func(ctx context.Context, address string) (net.Conn, error)) (*Shim, error) {
@@ -33,7 +34,8 @@ func New(cfg *pgx.ConnConfig, dialFunc func(ctx context.Context, address string)
 	con := stdlib.GetConnector(*parsedCfg)
 
 	return &Shim{
-		DB: sql.OpenDB(con),
+		DB:  sql.OpenDB(con),
+		cfg: cfg,
 	}, nil
 }
 

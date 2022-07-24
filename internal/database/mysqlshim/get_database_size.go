@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	QueryDBSize = "select SUM(DATA_LENGTH) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='%v';"
+	QueryDBSize = "SELECT SUM(DATA_LENGTH) FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_SCHEMA='%v';"
 )
 
 func (s *Shim) GetDatabaseSize(name string) (int64, error) {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 )
 
@@ -35,6 +36,12 @@ func NewPostgresConfig(cfg Config) *pgx.ConnConfig {
 		cfg.Port = 5432
 	}
 
+	fallbackcfg := pgconn.FallbackConfig{
+		Host:      cfg.Host,
+		Port:      uint16(cfg.Port),
+		TLSConfig: nil,
+	}
+
 	var dbcfg pgx.ConnConfig
 	dbcfg.Host = cfg.Host
 	dbcfg.Database = cfg.Name
@@ -43,6 +50,9 @@ func NewPostgresConfig(cfg Config) *pgx.ConnConfig {
 	dbcfg.Password = cfg.Password
 	dbcfg.TLSConfig = &tls.Config{
 		InsecureSkipVerify: true,
+	}
+	dbcfg.Fallbacks = []*pgconn.FallbackConfig{
+		&fallbackcfg,
 	}
 
 	return &dbcfg

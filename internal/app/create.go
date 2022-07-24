@@ -34,14 +34,6 @@ func (a *App) CreateUser(opts CreateUserOptions) error {
 		return fmt.Errorf("unable to create user: %w", err)
 	}
 
-	q := fmt.Sprintf("SHOW GRANTS FOR '%v'", opts.Name)
-	out, err := cl.Query(q)
-	if err != nil {
-		return fmt.Errorf("unable to query: %w", err)
-	}
-
-	fmt.Print(cl.Format(out))
-
 	log.Printf("Created user: %v with grants for database: %v\n", opts.Name, opts.Database)
 	if opts.Password == "" {
 		log.Printf("No password provided. Generated password is: %v\n", pass)

@@ -4,8 +4,12 @@ import (
 	"fmt"
 )
 
+const (
+	QueryCreateDatabase = "CREATE DATABASE IF NOT EXISTS %v;"
+)
+
 func (s *Shim) CreateDatabase(name string) error {
-	q := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %v;", name)
+	q := fmt.Sprintf(QueryCreateDatabase, name)
 
 	tx, err := s.DB.Begin()
 	if err != nil {
