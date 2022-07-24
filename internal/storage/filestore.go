@@ -1,4 +1,4 @@
-package filestore
+package storage
 
 import (
 	"fmt"
@@ -17,11 +17,7 @@ type FileOptions struct {
 	Filename string
 }
 
-const (
-	FilenameFormat = "%v-20060102-150405.sql.gz"
-)
-
-func New(directory string) (*FileStore, error) {
+func NewFileStore(directory string) (*FileStore, error) {
 	if err := os.MkdirAll(directory, 0o755); err != nil {
 		return nil, fmt.Errorf("Error mkdir: %v: %w", directory, err)
 	}

@@ -1,4 +1,4 @@
-package bucketstore
+package storage
 
 import (
 	"context"
@@ -13,10 +13,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 )
 
-type FakeWriterAt struct {
-	w io.WriteCloser
-}
-
 type BucketStore struct {
 	s3client   *s3.Client
 	downloader *manager.Downloader
@@ -30,11 +26,11 @@ type BucketOptions struct {
 	Filename string
 }
 
-const (
-	FilenameFormat = "%v-20060102-150405.sql.gz"
-)
+type FakeWriterAt struct {
+	w io.WriteCloser
+}
 
-func New(region, bucket, prefix string) (*BucketStore, error) {
+func NewBucketStore(region, bucket, prefix string) (*BucketStore, error) {
 	cfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion(region))
 	if err != nil {
 		return nil, fmt.Errorf("unable to load AWS config: %w", err)

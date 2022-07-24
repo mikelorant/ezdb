@@ -3,10 +3,6 @@ package storage
 import (
 	"fmt"
 	"io"
-
-	"github.com/mikelorant/ezdb2/internal/storage/bucketstore"
-	"github.com/mikelorant/ezdb2/internal/storage/filestore"
-	"github.com/mikelorant/ezdb2/internal/storage/pipestore"
 )
 
 type Storer interface {
@@ -29,10 +25,14 @@ type Store struct {
 	storer Storer
 }
 
+const (
+	FilenameFormat = "%v-20060102-150405.sql.gz"
+)
+
 func New(cfg Config) (*Store, error) {
 	switch cfg.Type {
 	case "s3":
-		s, err := bucketstore.New(cfg.Region, cfg.Bucket, cfg.Prefix)
+		s, err := NewBucketStore(cfg.Region, cfg.Bucket, cfg.Prefix)
 		if err != nil {
 			return nil, fmt.Errorf("unable to provision storage: %v: %w", cfg.Name, err)
 		}
@@ -41,7 +41,7 @@ func New(cfg Config) (*Store, error) {
 			storer: s,
 		}, nil
 	case "directory":
-		s, err := filestore.New(cfg.Path)
+		s, err := NewFileStore(cfg.Path)
 		if err != nil {
 			return nil, fmt.Errorf("unable to provision storage: %v: %w", cfg.Name, err)
 		}
@@ -50,7 +50,7 @@ func New(cfg Config) (*Store, error) {
 			storer: s,
 		}, nil
 	case "pipe":
-		s, err := pipestore.New()
+		s, err := NewPipeStore()
 		if err != nil {
 			return nil, fmt.Errorf("unable to provision storage: %v: %w", cfg.Name, err)
 		}
