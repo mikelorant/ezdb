@@ -9,7 +9,7 @@ import (
 )
 
 type Tunnel struct {
-	client *ssh.Client
+	Client *ssh.Client
 	config Config
 }
 
@@ -37,13 +37,9 @@ func (t *Tunnel) Connect(keyfile string, host string, user string) error {
 	if err != nil {
 		return fmt.Errorf("unable to dial: %w", err)
 	}
-	t.client = cl
+	t.Client = cl
 
 	return nil
-}
-
-func (t *Tunnel) Client() *ssh.Client {
-	return t.client
 }
 
 func (t *Tunnel) Command(cmd string) (string, error) {
@@ -53,6 +49,21 @@ func (t *Tunnel) Command(cmd string) (string, error) {
 	}
 
 	return out.String(), nil
+}
+
+func (t *Tunnel) exec(cmd string) (*bytes.Buffer, error) {
+	sess, err := t.Client.NewSession()
+	if err != nil {
+		return nil, fmt.Errorf("Failed to create session: %w", err)
+	}
+	defer sess.Close()
+
+	b, err := run(sess, cmd)
+	if err != nil {
+		return nil, fmt.Errorf("unable to exec: %v: %w", cmd, err)
+	}
+
+	return b, nil
 }
 
 func signer(keyfile string) (ssh.Signer, error) {
@@ -67,21 +78,6 @@ func signer(keyfile string) (ssh.Signer, error) {
 	}
 
 	return signer, nil
-}
-
-func (t *Tunnel) exec(cmd string) (*bytes.Buffer, error) {
-	sess, err := t.client.NewSession()
-	if err != nil {
-		return nil, fmt.Errorf("Failed to create session: %w", err)
-	}
-	defer sess.Close()
-
-	b, err := run(sess, cmd)
-	if err != nil {
-		return nil, fmt.Errorf("unable to exec: %v: %w", cmd, err)
-	}
-
-	return b, nil
 }
 
 func run(sess *ssh.Session, cmd string) (*bytes.Buffer, error) {

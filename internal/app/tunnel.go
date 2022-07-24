@@ -43,7 +43,7 @@ func makeTunnel(tun *Tunnel) (*ssh.Client, error) {
 
 	log.Printf("Tunnel succesfully connected: %v\n", strings.TrimSpace(out))
 
-	return t.Client(), nil
+	return t.Client, nil
 }
 
 func getTunnelSession(tun *Tunnel) (*ssh.Session, error) {
