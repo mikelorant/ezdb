@@ -18,7 +18,7 @@ func (a *App) Restore(opts RestoreOptions) error {
 		return fmt.Errorf("unable to select a context: %w", err)
 	}
 
-	cl, err := a.GetDB(context)
+	cl, err := a.GetDBClient(context)
 	if err != nil {
 		return fmt.Errorf("unable to get database client: %w", err)
 	}
@@ -59,7 +59,7 @@ func (a *App) Restore(opts RestoreOptions) error {
 		return fmt.Errorf("unable to create database: %v: %w", opts.Name, err)
 	}
 
-	cl, err = a.GetDB(context,
+	cl, err = a.GetDBClient(context,
 		WithDBName(opts.Name),
 	)
 	if err != nil {

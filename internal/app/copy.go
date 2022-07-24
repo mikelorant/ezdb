@@ -20,7 +20,7 @@ func (a *App) Copy(opts CopyOptions) error {
 		return fmt.Errorf("unable to select a source context: %w", err)
 	}
 
-	fromClient, err := a.GetDB(fromContext)
+	fromClient, err := a.GetDBClient(fromContext)
 	if err != nil {
 		return fmt.Errorf("unable to get source database client: %w", err)
 	}
@@ -42,7 +42,7 @@ func (a *App) Copy(opts CopyOptions) error {
 
 	toName := opts.ToName
 
-	fromClient, err = a.GetDB(fromContext,
+	fromClient, err = a.GetDBClient(fromContext,
 		WithDBName(fromName),
 	)
 	if err != nil {
@@ -59,7 +59,7 @@ func (a *App) Copy(opts CopyOptions) error {
 		return fmt.Errorf("unable to get a source shell: %w", err)
 	}
 
-	toClient, err := a.GetDB(toContext)
+	toClient, err := a.GetDBClient(toContext)
 	if err != nil {
 		return fmt.Errorf("unable to get source database client: %w", err)
 	}
@@ -78,7 +78,7 @@ func (a *App) Copy(opts CopyOptions) error {
 		return fmt.Errorf("unable to create target database: %v: %w", toName, err)
 	}
 
-	toClient, err = a.GetDB(toContext,
+	toClient, err = a.GetDBClient(toContext,
 		WithDBName(toName),
 	)
 	if err != nil {

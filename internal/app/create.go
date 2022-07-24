@@ -20,7 +20,7 @@ func (a *App) CreateUser(opts CreateUserOptions) error {
 		return fmt.Errorf("unable to select a context: %w", err)
 	}
 
-	cl, err := a.GetDB(context)
+	cl, err := a.GetDBClient(context)
 	if err != nil {
 		return fmt.Errorf("unable to get database client: %w", err)
 	}

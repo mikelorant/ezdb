@@ -6,8 +6,6 @@ import (
 	"io"
 	"net"
 
-	// "github.com/jackc/pgconn"
-
 	"github.com/mikelorant/ezdb2/internal/database/mysqlshim"
 	"github.com/mikelorant/ezdb2/internal/database/postgresshim"
 )

@@ -34,7 +34,7 @@ func WithDBName(name string) func(*DBOptions) {
 	}
 }
 
-func (a *App) GetDB(context string, dbOpts ...func(*DBOptions)) (*database.Database, error) {
+func (a *App) GetDBClient(context string, dbOpts ...func(*DBOptions)) (*database.Database, error) {
 	var dbOptions DBOptions
 	for _, o := range dbOpts {
 		o(&dbOptions)
