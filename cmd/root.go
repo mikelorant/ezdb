@@ -13,11 +13,12 @@ func NewRootCmd() *cobra.Command {
 		Short: "A brief description of your application",
 	}
 
-	cmd.AddCommand(NewCopyCmd())
-	cmd.AddCommand(NewQueryCmd())
 	cmd.AddCommand(NewBackupCmd())
-	cmd.AddCommand(NewRestoreCmd())
+	cmd.AddCommand(NewCopyCmd())
 	cmd.AddCommand(NewCreateCmd())
+	cmd.AddCommand(NewDeleteCmd())
+	cmd.AddCommand(NewQueryCmd())
+	cmd.AddCommand(NewRestoreCmd())
 	cmd.AddCommand(NewRunCmd())
 
 	return cmd
