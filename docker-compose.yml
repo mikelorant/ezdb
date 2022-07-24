@@ -30,7 +30,17 @@ services:
     ports:
     - 5432:5432
 
+  database4:
+    image: postgres:14.4-alpine
+    environment:
+      POSTGRES_HOST_AUTH_METHOD: "trust"
+    volumes:
+    - database4:/var/lib/postgresql/data
+    ports:
+    - 5433:5432
+
 volumes:
   database1:
   database2:
   database3:
+  database4:
