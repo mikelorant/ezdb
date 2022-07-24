@@ -165,6 +165,6 @@ func doRestore(cmd Restorer, name, filename string, retriever Retriever, runner 
 	return out, nil
 }
 
-func getTransformer(r ReplaceRegexpString) transform.Transformer {
+func getTransformer(r ReplaceRegexpString) *replace.RegexpTransformer {
 	return replace.RegexpString(regexp.MustCompile(r[0]), r[1])
 }
