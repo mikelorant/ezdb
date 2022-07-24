@@ -84,7 +84,7 @@ func (a *App) Backup(opts BackupOptions) error {
 	return nil
 }
 
-func backup(cmd Backuper, name string, size int64, storer Storer, shell Shell, verbose bool) (string, error) {
+func backup(cmd Backuper, name string, size int64, storer Storer, runner Runner, verbose bool) (string, error) {
 	desc := "Dumping..."
 	bar := progress.New(size, desc, verbose)
 
@@ -109,7 +109,7 @@ func backup(cmd Backuper, name string, size int64, storer Storer, shell Shell, v
 		log.Println("Command:", cmd.BackupCommand(true))
 	}
 
-	if err := shell.Run(dumpIn, nil, cmd.BackupCommand(false), false); err != nil {
+	if err := runner.Run(dumpIn, nil, cmd.BackupCommand(false), false); err != nil {
 		return "", fmt.Errorf("unable to run command: %w", err)
 	}
 	dumpOut.Close()

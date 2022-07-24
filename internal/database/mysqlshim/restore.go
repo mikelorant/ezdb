@@ -9,7 +9,7 @@ var (
 	MySQLRestoreCommand = "mysql"
 	MySQLRestoreOptions = []string{
 		"--compress",
-		// "--ssl-mode=preferred",
+		"--ssl-mode=preferred",
 		"--protocol=tcp",
 	}
 )

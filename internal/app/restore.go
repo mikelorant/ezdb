@@ -104,7 +104,7 @@ var (
 	MySQLRestoreReplaceDefiner = ReplaceRegexpString{"DEFINER=[^ *]+", "DEFINER=CURRENT_USER"}
 )
 
-func restore(cmd Restorer, name, filename string, retriever Retriever, shell Shell, verbose bool) ([]byte, error) {
+func restore(cmd Restorer, name, filename string, retriever Retriever, runner Runner, verbose bool) ([]byte, error) {
 	desc := "Restoring..."
 	bar := progress.New(-1, desc, verbose)
 
@@ -144,7 +144,7 @@ func restore(cmd Restorer, name, filename string, retriever Retriever, shell She
 		log.Println("Command:", cmd.RestoreCommand(true))
 	}
 
-	if err := shell.Run(&buf, rr, cmd.RestoreCommand(false), true); err != nil {
+	if err := runner.Run(&buf, rr, cmd.RestoreCommand(false), true); err != nil {
 		bar.Finish()
 		out, _ := io.ReadAll(&buf)
 		fmt.Print(string(out))

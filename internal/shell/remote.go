@@ -11,21 +11,13 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-type Runner interface {
-	Start(cmd string) error
-	Wait() error
-	StdoutPipe() (io.Reader, error)
-	StderrPipe() (io.Reader, error)
-	StdinPipe() (io.WriteCloser, error)
-}
-
 type RemoteShell struct {
-	runner Runner
+	session Session
 }
 
-func NewRemoteShell(run Runner) *RemoteShell {
+func NewRemoteShell(sess Session) *RemoteShell {
 	return &RemoteShell{
-		runner: run,
+		session: sess,
 	}
 }
 
@@ -36,25 +28,25 @@ func (s RemoteShell) Run(out io.Writer, in io.Reader, cmd string, combinedOutput
 
 	cmd = fmt.Sprintf("sh -c \"%v\"", cmd)
 
-	stdout, err := s.runner.StdoutPipe()
+	stdout, err := s.session.StdoutPipe()
 	if err != nil {
 		return fmt.Errorf("unable to create stdout pipe: %w", err)
 	}
 	stdoutBuffer := bufio.NewReader(stdout)
 
-	stderr, err := s.runner.StderrPipe()
+	stderr, err := s.session.StderrPipe()
 	if err != nil {
 		return fmt.Errorf("unable to create stderr pipe: %w", err)
 	}
 	stderrBuffer := bufio.NewReader(stderr)
 
-	stdin, err := s.runner.StdinPipe()
+	stdin, err := s.session.StdinPipe()
 	if err != nil {
 		return fmt.Errorf("unable to create stdin pipe: %w", err)
 	}
 	stdinBuffer := bufio.NewWriter(stdin)
 
-	if err := s.runner.Start(cmd); err != nil {
+	if err := s.session.Start(cmd); err != nil {
 		return fmt.Errorf("unable to run command: %w", err)
 	}
 
@@ -85,7 +77,7 @@ func (s RemoteShell) Run(out io.Writer, in io.Reader, cmd string, combinedOutput
 		return fmt.Errorf("unable to copy stdout/stdin: %w", err)
 	}
 
-	if err := s.runner.Wait(); err != nil {
+	if err := s.session.Wait(); err != nil {
 		return fmt.Errorf("error running command: %w", err)
 	}
 

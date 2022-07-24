@@ -2,20 +2,15 @@ package app
 
 import (
 	"fmt"
-	"io"
 
 	"github.com/mikelorant/ezdb2/internal/shell"
 )
 
-type Shell interface {
-	Run(out io.Writer, in io.Reader, cmd string, combinedOutput bool) error
-}
-
-func (a *App) GetShell(context string) (Shell, error) {
+func (a *App) GetShell(context string) (*shell.Shell, error) {
 	_, tun := a.Config.getContext(context)
 
 	if tun == nil {
-		return shell.NewLocalShell(), nil
+		return shell.New(shell.Config{})
 	}
 
 	sess, err := getTunnelSession(tun)
@@ -23,5 +18,7 @@ func (a *App) GetShell(context string) (Shell, error) {
 		return nil, fmt.Errorf("unable to get tunnel client: %w", err)
 	}
 
-	return shell.NewRemoteShell(sess), nil
+	return shell.New(shell.Config{
+		Session: sess,
+	})
 }

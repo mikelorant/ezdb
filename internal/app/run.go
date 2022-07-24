@@ -2,8 +2,13 @@ package app
 
 import (
 	"fmt"
+	"io"
 	"os"
 )
+
+type Runner interface {
+	Run(out io.Writer, in io.Reader, cmd string, combinedOutput bool) error
+}
 
 type RunOptions struct {
 	Context string
