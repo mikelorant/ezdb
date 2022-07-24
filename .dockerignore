@@ -1,0 +1,10 @@
+# Exclude everything
+**
+
+# Include directories with some exclusions
+!cmd
+!internal
+
+# Include files
+!go.*
+!*.go

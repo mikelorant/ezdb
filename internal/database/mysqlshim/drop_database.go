@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	QueryDropDatabase = "DROP DATABASE IF NOT EXISTS %v;"
+	QueryDropDatabase = "DROP DATABASE IF EXISTS %v;"
 )
 
 func (s *Shim) DropDatabase(name string) error {
