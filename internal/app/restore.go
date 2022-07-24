@@ -87,7 +87,7 @@ func (a *App) Restore(opts RestoreOptions) error {
 		return fmt.Errorf("unable to get a shell: %w", err)
 	}
 
-	_, err = restore(cl, opts.Name, filename, storer, shell, true)
+	_, err = doRestore(cl, opts.Name, filename, storer, shell, true)
 	if err != nil {
 		return fmt.Errorf("unable to restore database: %v: %w", opts.Name, err)
 	}
@@ -104,7 +104,7 @@ var (
 	MySQLRestoreReplaceDefiner = ReplaceRegexpString{"DEFINER=[^ *]+", "DEFINER=CURRENT_USER"}
 )
 
-func restore(cmd Restorer, name, filename string, retriever Retriever, runner Runner, verbose bool) ([]byte, error) {
+func doRestore(cmd Restorer, name, filename string, retriever Retriever, runner Runner, verbose bool) ([]byte, error) {
 	desc := "Restoring..."
 	bar := progress.New(-1, desc, verbose)
 

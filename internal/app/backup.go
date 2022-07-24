@@ -73,7 +73,7 @@ func (a *App) Backup(opts BackupOptions) error {
 	}
 
 	filename := fmt.Sprintf("%v-%v", context, name)
-	location, err := backup(cl, filename, dbSize, storer, shell, true)
+	location, err := doBackup(cl, filename, dbSize, storer, shell, true)
 	if err != nil {
 		return fmt.Errorf("unable to backup database: %v: %w", name, err)
 	}
@@ -84,7 +84,7 @@ func (a *App) Backup(opts BackupOptions) error {
 	return nil
 }
 
-func backup(cmd Backuper, name string, size int64, storer Storer, runner Runner, verbose bool) (string, error) {
+func doBackup(cmd Backuper, name string, size int64, storer Storer, runner Runner, verbose bool) (string, error) {
 	desc := "Dumping..."
 	bar := progress.New(size, desc, verbose)
 
