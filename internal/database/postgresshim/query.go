@@ -1,4 +1,4 @@
-package mysqlshim
+package postgresshim
 
 import (
 	"bytes"
@@ -78,4 +78,20 @@ func output(rows *sql.Rows) ([][]string, error) {
 	}
 
 	return out, nil
+}
+
+func Format(rows [][]string) string {
+	var buffer bytes.Buffer
+
+	header := []interface{}{}
+	for _, c := range rows[0] {
+		header = append(header, c)
+	}
+
+	tbl := table.New(header...)
+	tbl.WithWriter(&buffer)
+	tbl.SetRows(rows[1:])
+	tbl.Print()
+
+	return buffer.String()
 }

@@ -1,7 +1,6 @@
 package mysqlshim
 
 import (
-	"database/sql"
 	"fmt"
 )
 
@@ -9,14 +8,11 @@ const (
 	QueryShowDatabases = "SHOW DATABASES;"
 )
 
-func (cl *Client) ListDatabases() ([]string, error) {
-	db := sql.OpenDB(cl.connector)
-	defer db.Close()
-
+func (s *Shim) ListDatabases() ([]string, error) {
 	var list []string
 
 	var res string
-	rows, err := db.Query(QueryShowDatabases)
+	rows, err := s.DB.Query(QueryShowDatabases)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get database list: %w", err)
 	}

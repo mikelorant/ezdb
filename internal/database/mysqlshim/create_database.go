@@ -1,17 +1,13 @@
 package mysqlshim
 
 import (
-	"database/sql"
 	"fmt"
 )
 
-func (cl *Client) CreateDatabase(name string) error {
-	db := sql.OpenDB(cl.connector)
-	defer db.Close()
-
+func (s *Shim) CreateDatabase(name string) error {
 	q := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %v;", name)
 
-	tx, err := db.Begin()
+	tx, err := s.DB.Begin()
 	if err != nil {
 		return fmt.Errorf("unable to begin transaction: %w", err)
 	}

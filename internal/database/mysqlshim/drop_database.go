@@ -1,17 +1,13 @@
 package mysqlshim
 
 import (
-	"database/sql"
 	"fmt"
 )
 
-func (cl *Client) DropDatabase(name string) error {
-	db := sql.OpenDB(cl.connector)
-	defer db.Close()
-
+func (s *Shim) DropDatabase(name string) error {
 	q := fmt.Sprintf("DROP DATABASE IF EXISTS %v;", name)
 
-	tx, err := db.Begin()
+	tx, err := s.DB.Begin()
 	if err != nil {
 		return fmt.Errorf("unable to begin transaction: %w", err)
 	}

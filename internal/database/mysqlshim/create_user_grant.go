@@ -1,7 +1,6 @@
 package mysqlshim
 
 import (
-	"database/sql"
 	"fmt"
 	"strings"
 )
@@ -27,16 +26,13 @@ var privileges = []string{
 	"TRIGGER",
 }
 
-func (cl *Client) CreateUserGrant(name, password, database string) error {
-	db := sql.OpenDB(cl.connector)
-	defer db.Close()
-
+func (s *Shim) CreateUserGrant(name, password, database string) error {
 	query := []string{
 		fmt.Sprintf("CREATE USER '%v'@'%%' IDENTIFIED BY '%v';", name, password),
 		fmt.Sprintf("GRANT %v ON %v.* TO '%v'@'%%';", strings.Join(privileges, ","), database, name),
 	}
 
-	tx, err := db.Begin()
+	tx, err := s.DB.Begin()
 	if err != nil {
 		return fmt.Errorf("unable to begin transaction: %w", err)
 	}

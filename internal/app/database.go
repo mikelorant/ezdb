@@ -3,30 +3,26 @@ package app
 import (
 	"fmt"
 
-	"github.com/go-sql-driver/mysql"
-	"github.com/mikelorant/ezdb2/internal/database/mysqlshim"
+	"github.com/mikelorant/ezdb2/internal/database"
 	"github.com/mikelorant/ezdb2/internal/structprinter"
 )
 
 type Databases []Database
 
 type Database struct {
-	User     string `yaml:"user"`
-	Password string `yaml:"password"`
+	Context  string `yaml:"context"`
+	Engine   string `yaml:"engine"`
 	Host     string `yaml:"host"`
 	Port     int    `yaml:"port"`
-	Context  string `yaml:"context"`
+	User     string `yaml:"user"`
+	Name     string `yaml:"name"`
+	Password string `yaml:"password"`
 	Tunnel   string `yaml:"tunnel"`
 }
 
 type DBOptions struct {
 	name string
 }
-
-const (
-	DBMaxAllowedPacket = 0
-	DBTLSConfig        = "preferred"
-)
 
 func (d Database) String() string {
 	return structprinter.Sprint(d)
@@ -38,7 +34,7 @@ func WithDBName(name string) func(*DBOptions) {
 	}
 }
 
-func (a *App) GetDBClient(context string, dbOpts ...func(*DBOptions)) (*mysqlshim.Client, error) {
+func (a *App) GetDB(context string, dbOpts ...func(*DBOptions)) (*database.Database, error) {
 	var dbOptions DBOptions
 	for _, o := range dbOpts {
 		o(&dbOptions)
@@ -46,34 +42,23 @@ func (a *App) GetDBClient(context string, dbOpts ...func(*DBOptions)) (*mysqlshi
 
 	db, tun := a.Config.getContext(context)
 
-	dbcfg := getDBConfig(db, tun, dbOptions.name)
+	if dbOptions.name != "" {
+		db.Name = dbOptions.name
+	}
 
-	dial, err := getDialerFunc(tun)
+	cfg := database.Config{
+		Engine:   db.Engine,
+		Host:     db.Host,
+		Port:     db.Port,
+		User:     db.User,
+		Name:     db.Name,
+		Password: db.Password,
+	}
+
+	dialer, err := getDialFunc(tun)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get dialer function: %w", err)
+		return nil, fmt.Errorf("unable to get dialer: %w", err)
 	}
 
-	cl, err := mysqlshim.NewClient(dbcfg, dial)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get new client: %w", err)
-	}
-
-	return cl, nil
-}
-
-func getDBConfig(db *Database, tun *Tunnel, name string) *mysql.Config {
-	if db.Port == 0 {
-		db.Port = 3306
-	}
-
-	cfg := mysql.NewConfig()
-	cfg.Net = db.Host
-	cfg.Addr = fmt.Sprintf("%v:%v", db.Host, db.Port)
-	cfg.User = db.User
-	cfg.Passwd = db.Password
-	cfg.DBName = name
-	cfg.TLSConfig = "preferred"
-	cfg.MaxAllowedPacket = DBMaxAllowedPacket
-
-	return cfg
+	return database.New(cfg, dialer)
 }

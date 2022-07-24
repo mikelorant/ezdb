@@ -2,8 +2,6 @@ package app
 
 import (
 	"fmt"
-
-	"github.com/mikelorant/ezdb2/internal/database/mysqlshim"
 )
 
 type QueryOptions struct {
@@ -18,7 +16,7 @@ func (a *App) Query(opts QueryOptions) error {
 		return fmt.Errorf("unable to select a context: %w", err)
 	}
 
-	cl, err := a.GetDBClient(context)
+	cl, err := a.GetDB(context)
 	if err != nil {
 		return fmt.Errorf("unable to get database client: %w", err)
 	}
@@ -33,7 +31,7 @@ func (a *App) Query(opts QueryOptions) error {
 		return fmt.Errorf("unable to select a context: %w", err)
 	}
 
-	cl, err = a.GetDBClient(context,
+	cl, err = a.GetDB(context,
 		WithDBName(name),
 	)
 	if err != nil {
@@ -45,7 +43,7 @@ func (a *App) Query(opts QueryOptions) error {
 		return fmt.Errorf("unable to query: %w", err)
 	}
 
-	fmt.Print(mysqlshim.Format(out))
+	fmt.Print(cl.Format(out))
 
 	return nil
 }

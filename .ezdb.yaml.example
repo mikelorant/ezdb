@@ -1,31 +1,41 @@
 databases:
-- context: typical
+- context: mysql
+  engine: mysql
   host: mydb.123456789012.us-east-1.rds.amazonaws.com
   user: root
   password: ~
 
+- context: postgres
+  engine: postgres
+  host: mydb.123456789012.us-east-1.rds.amazonaws.com
+  user: postgres
+  password: ~
+
 - context: with-port
+  engine: mysql
   host: mydb.123456789012.us-east-1.rds.amazonaws.com
   port: 3307
   user: root
   password: ~
 
 - context: with-tunnel
+  engine: mysql
   host: mydb.123456789012.us-east-1.rds.amazonaws.com
   user: root
   password: ~
   tunnel: mytunnel
 
 - context: localhost
+  host: 127.0.0.1
+  engine: mysql
   user: root
   password: ~
-  host: 127.0.0.1
 
 tunnels:
 - name: mytunnel
   key: $HOME/.ssh/id_rsa
-  user: root
   host: 192.168.1.1
+  user: root
 
 stores:
 - name: local

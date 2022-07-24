@@ -1,20 +1,9 @@
 package mysqlshim
 
 import (
-	"database/sql"
 	"fmt"
-	"io"
-	"log"
 	"strings"
-
-	"github.com/mikelorant/ezdb2/internal/compress"
-	"github.com/mikelorant/ezdb2/internal/progress"
-	"golang.org/x/sync/errgroup"
 )
-
-type Shell interface {
-	Run(out io.Writer, in io.Reader, cmd string, combinedOutput bool) error
-}
 
 var (
 	MySQLDumpCommand = "mysqldump"
@@ -26,71 +15,29 @@ var (
 	}
 )
 
-func (cl *Client) Backup(name string, size int64, storer Storer, shell Shell, verbose bool) (string, error) {
-	db := sql.OpenDB(cl.connector)
-	defer db.Close()
-
-	desc := "Dumping..."
-	bar := progress.New(size, desc, verbose)
-
-	// mysqldump (w) -> (w) multiwriter (w) -> (w) progressbar
-	//                                      -> (w) pipe (r) -> (r) gzip (r) -> (r) storer
-
-	gzipIn, dumpOut := io.Pipe()
-	dumpIn := io.MultiWriter(dumpOut, bar)
-	gzipOut := compress.NewGzipCompressor(gzipIn)
-
-	g := new(errgroup.Group)
-
-	result := make(chan string)
-
-	g.Go(func() error {
-		location, err := storer.Store(gzipOut, name)
-		result <- location
-		return err
-	})
-
-	if verbose {
-		log.Println("Command:", cl.getBackupCommand(true))
-	}
-
-	if err := shell.Run(dumpIn, nil, cl.getBackupCommand(false), false); err != nil {
-		return "", fmt.Errorf("unable to run command: %w", err)
-	}
-	dumpOut.Close()
-
-	location := <-result
-	if err := g.Wait(); err != nil {
-		return "", fmt.Errorf("store failure: %w", err)
-	}
-	bar.Finish()
-
-	return location, nil
-}
-
-func (cl *Client) getBackupCommand(hidden bool) string {
+func (s *Shim) BackupCommand(hidden bool) string {
 	var cmd []string
 
 	cmd = append(cmd, MySQLDumpCommand)
 
-	if user := cl.config.User; user != "" {
-		cmd = append(cmd, fmt.Sprintf("--user=%v", user))
+	if s.cfg.User != "" {
+		cmd = append(cmd, fmt.Sprintf("--user=%v", s.cfg.User))
 	}
 
-	if password := cl.config.Passwd; password != "" {
+	if s.cfg.Passwd != "" {
 		if hidden {
-			cmd = append(cmd, fmt.Sprintf("--password=%v", strings.Repeat("*", len(password))))
+			cmd = append(cmd, fmt.Sprintf("--password=%v", strings.Repeat("*", len(s.cfg.Passwd))))
 		} else {
-			cmd = append(cmd, fmt.Sprintf("--password=%v", password))
+			cmd = append(cmd, fmt.Sprintf("--password=%v", s.cfg.Passwd))
 		}
 	}
 
-	hostPort := strings.Split(cl.config.Addr, ":")
+	hostPort := strings.Split(s.cfg.Addr, ":")
 	cmd = append(cmd, fmt.Sprintf("--host=%v --port=%v", hostPort[0], hostPort[1]))
 
 	cmd = append(cmd, MySQLDumpOptions...)
 
-	cmd = append(cmd, cl.config.DBName)
+	cmd = append(cmd, s.cfg.DBName)
 
 	return strings.Join(cmd, " ")
 }
