@@ -100,7 +100,7 @@ func (a *App) Copy(opts CopyOptions) error {
 	g := new(errgroup.Group)
 
 	g.Go(func() error {
-		if _, err := fromClient.Backup(fromName, fromDBSize, storer, fromShell, true); err != nil {
+		if _, err := backup(fromClient, fromName, fromDBSize, storer, fromShell, true); err != nil {
 			return fmt.Errorf("unable to backup source database: %v: %w", fromName, err)
 		}
 
@@ -108,7 +108,7 @@ func (a *App) Copy(opts CopyOptions) error {
 	})
 
 	g.Go(func() error {
-		if _, err := toClient.Restore(toName, "", storer, toShell, false); err != nil {
+		if _, err := restore(toClient, toName, "", storer, toShell, false); err != nil {
 			return fmt.Errorf("unable to restore target database: %v: %w", toName, err)
 		}
 

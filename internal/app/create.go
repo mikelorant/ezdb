@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/mikelorant/ezdb2/internal/password"
+	"github.com/sethvargo/go-password/password"
 )
 
 type CreateUserOptions struct {
@@ -27,7 +27,10 @@ func (a *App) CreateUser(opts CreateUserOptions) error {
 
 	pass := opts.Password
 	if pass == "" {
-		pass = password.Generate()
+		pass, err = password.Generate(32, 10, 0, true, false)
+		if err != nil {
+			return fmt.Errorf("unable to generate password: %w", err)
+		}
 	}
 
 	if err := cl.CreateUserGrant(opts.Name, pass, opts.Database); err != nil {

@@ -2,7 +2,13 @@ package app
 
 import (
 	"fmt"
+	"io"
 	"log"
+
+	"github.com/mikelorant/ezdb2/internal/compress"
+	"github.com/mikelorant/ezdb2/internal/database"
+	"github.com/mikelorant/ezdb2/internal/progress"
+	"golang.org/x/sync/errgroup"
 )
 
 type BackupOptions struct {
@@ -62,7 +68,7 @@ func (a *App) Backup(opts BackupOptions) error {
 	}
 
 	filename := fmt.Sprintf("%v-%v", context, name)
-	location, err := cl.Backup(filename, dbSize, storer, shell, true)
+	location, err := backup(cl, filename, dbSize, storer, shell, true)
 	if err != nil {
 		return fmt.Errorf("unable to backup database: %v: %w", name, err)
 	}
@@ -71,4 +77,43 @@ func (a *App) Backup(opts BackupOptions) error {
 	log.Println("Location:", location)
 
 	return nil
+}
+
+func backup(cl *database.Database, name string, size int64, storer Storer, shell Shell, verbose bool) (string, error) {
+	desc := "Dumping..."
+	bar := progress.New(size, desc, verbose)
+
+	// mysqldump (w) -> (w) multiwriter (w) -> (w) progressbar
+	//                                      -> (w) pipe (r) -> (r) gzip (r) -> (r) storer
+
+	gzipIn, dumpOut := io.Pipe()
+	dumpIn := io.MultiWriter(dumpOut, bar)
+	gzipOut := compress.NewGzipCompressor(gzipIn)
+
+	g := new(errgroup.Group)
+
+	result := make(chan string)
+
+	g.Go(func() error {
+		location, err := storer.Store(gzipOut, name)
+		result <- location
+		return err
+	})
+
+	if verbose {
+		log.Println("Command:", cl.BackupCommand(true))
+	}
+
+	if err := shell.Run(dumpIn, nil, cl.BackupCommand(false), false); err != nil {
+		return "", fmt.Errorf("unable to run command: %w", err)
+	}
+	dumpOut.Close()
+
+	location := <-result
+	if err := g.Wait(); err != nil {
+		return "", fmt.Errorf("store failure: %w", err)
+	}
+	bar.Finish()
+
+	return location, nil
 }

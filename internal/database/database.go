@@ -3,7 +3,6 @@ package database
 import (
 	"context"
 	"database/sql"
-	"io"
 	"net"
 
 	"github.com/mikelorant/ezdb2/internal/database/mysqlshim"
@@ -21,16 +20,6 @@ type Shim interface {
 	ListDatabases() ([]string, error)
 	Query(query string) ([][]string, error)
 	Format(rows [][]string) string
-}
-
-type Storer interface {
-	Store(data io.Reader, filename string) (string, error)
-	Retrieve(data io.WriteCloser, filename string) error
-	List() ([]string, error)
-}
-
-type Shell interface {
-	Run(out io.Writer, in io.Reader, cmd string, combinedOutput bool) error
 }
 
 type Config struct {

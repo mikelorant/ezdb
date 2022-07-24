@@ -17,6 +17,7 @@ require (
 	github.com/jackc/pgx/v4 v4.16.1
 	github.com/rodaine/table v1.0.2-0.20210416185537-a3154d83485f
 	github.com/schollz/progressbar/v3 v3.8.7
+	github.com/sethvargo/go-password v0.2.0
 	github.com/spf13/cobra v1.5.0
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d
 	golang.org/x/sync v0.0.0-20220601150217-0de741cfad7f
