@@ -21,7 +21,14 @@ func (s Store) String() string {
 }
 
 func (a *App) GetStorageClient(name string) (*storage.Store, error) {
-	store := a.Config.getStore(name)
+	var store *Store
+
+	switch name {
+	case "pipe":
+		store.Type = "pipe"
+	default:
+		store = a.Config.getStore(name)
+	}
 
 	cfg := storage.Config{
 		Name:   store.Name,

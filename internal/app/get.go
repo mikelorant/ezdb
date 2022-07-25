@@ -9,8 +9,8 @@ type GetSessionOptions struct {
 }
 
 type GetVariableOptions struct {
-	Context 	string
-	Variable	string
+	Context  string
+	Variable string
 }
 
 func (a *App) GetSession(opts GetSessionOptions) error {

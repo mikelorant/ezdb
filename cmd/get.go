@@ -51,9 +51,7 @@ func NewGetSessionCmd() *cobra.Command {
 }
 
 func NewGetVariableCmd() *cobra.Command {
-	var (
-		context string
-	)
+	var context string
 
 	cmd := &cobra.Command{
 		Use:     "variable",

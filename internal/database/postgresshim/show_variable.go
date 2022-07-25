@@ -5,7 +5,7 @@ import (
 )
 
 const (
-	QueryShowVariable = "SHOW '%v';"
+	QueryShowVariable    = "SHOW '%v';"
 	QueryShowVariableAll = "SHOW ALL;"
 )
 
