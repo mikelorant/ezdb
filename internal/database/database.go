@@ -20,6 +20,8 @@ type Shim interface {
 	ListDatabases() ([]string, error)
 	Query(query string) ([][]string, error)
 	Format(rows [][]string) string
+	ShowSession() ([][]string, error)
+	ShowVariable(variable string) ([][]string, error)
 }
 
 type Config struct {
@@ -96,4 +98,12 @@ func (d *Database) Query(query string) ([][]string, error) {
 
 func (d *Database) Format(rows [][]string) string {
 	return d.shim.Format(rows)
+}
+
+func (d *Database) ShowSession() ([][]string, error) {
+	return d.shim.ShowSession()
+}
+
+func (d *Database) ShowVariable(variable string) ([][]string, error) {
+	return d.shim.ShowVariable(variable)
 }

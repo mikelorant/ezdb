@@ -17,6 +17,7 @@ func NewRootCmd() *cobra.Command {
 	cmd.AddCommand(NewCopyCmd())
 	cmd.AddCommand(NewCreateCmd())
 	cmd.AddCommand(NewDeleteCmd())
+	cmd.AddCommand(NewGetCmd())
 	cmd.AddCommand(NewQueryCmd())
 	cmd.AddCommand(NewRestoreCmd())
 	cmd.AddCommand(NewRunCmd())
