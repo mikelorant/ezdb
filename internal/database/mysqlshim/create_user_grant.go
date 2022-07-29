@@ -32,21 +32,11 @@ func (s *Shim) CreateUserGrant(name, password, database string) error {
 		fmt.Sprintf("GRANT %v ON %v.* TO '%v'@'%%';", strings.Join(privileges, ","), database, name),
 	}
 
-	tx, err := s.DB.Begin()
-	if err != nil {
-		return fmt.Errorf("unable to begin transaction: %w", err)
-	}
 	for _, q := range query {
-		_, err = tx.Exec(q)
-		if err != nil {
-			return fmt.Errorf("unable to begin transaction: %w", err)
-		}
-		if err != nil {
-			tx.Rollback()
-			return fmt.Errorf("transaction failed: %w", err)
+		if err := s.exec(q); err != nil {
+			return fmt.Errorf("unable to exec query: %w", err)
 		}
 	}
-	tx.Commit()
 
 	return nil
 }

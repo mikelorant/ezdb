@@ -14,10 +14,7 @@ func (s *Shim) GetDatabaseSize(name string) (int64, error) {
 
 	query := fmt.Sprintf(QueryDBSize, name)
 
-	row := s.DB.QueryRow(query)
-	if err := row.Scan(&size); err != nil {
-		return size.Int64, fmt.Errorf("unable to get database size: %w", err)
-	}
+	s.queryRow(query, &size)
 
 	return size.Int64, nil
 }

@@ -11,14 +11,13 @@ const (
 func (s *Shim) ListDatabases() ([]string, error) {
 	var list []string
 
-	var res string
-	rows, err := s.DB.Query(QueryShowDatabases)
+	out, err := s.Query(QueryShowDatabases)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get database list: %w", err)
 	}
-	for rows.Next() {
-		rows.Scan(&res)
-		list = append(list, res)
+
+	for _, v := range out {
+		list = append(list, v[0])
 	}
 
 	return list, nil

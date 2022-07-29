@@ -11,16 +11,9 @@ const (
 func (s *Shim) CreateDatabase(name string) error {
 	q := fmt.Sprintf(QueryCreateDatabase, name)
 
-	tx, err := s.DB.Begin()
-	if err != nil {
-		return fmt.Errorf("unable to begin transaction: %w", err)
+	if err := s.exec(q); err != nil {
+		return fmt.Errorf("unable to create database: %v: %w", name, err)
 	}
-	_, err = tx.Exec(q)
-	if err != nil {
-		tx.Rollback()
-		return fmt.Errorf("transaction failed: %w", err)
-	}
-	tx.Commit()
 
 	return nil
 }

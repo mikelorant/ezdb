@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/mikelorant/ezdb2/internal/database"
-	"github.com/mikelorant/ezdb2/internal/structprinter"
+	"github.com/mikelorant/ezdb2/internal/printer"
 )
 
 type Databases []Database
@@ -25,7 +25,7 @@ type DBOptions struct {
 }
 
 func (d Database) String() string {
-	return structprinter.Sprint(d)
+	return printer.Struct(d)
 }
 
 func WithDBName(name string) func(*DBOptions) {

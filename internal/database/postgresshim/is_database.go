@@ -9,12 +9,11 @@ const (
 )
 
 func (s *Shim) IsDatabase(name string) bool {
-	var res int
+	var dbname string
 
 	query := fmt.Sprintf(QueryDBExists, name)
 
-	row := s.DB.QueryRow(query)
-	row.Scan(&res)
+	s.queryRow(query, &dbname)
 
-	return res == 1
+	return dbname == name
 }

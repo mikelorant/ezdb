@@ -2,6 +2,8 @@ package app
 
 import (
 	"fmt"
+
+	"github.com/mikelorant/ezdb2/internal/printer"
 )
 
 type QueryOptions struct {
@@ -43,7 +45,7 @@ func (a *App) Query(opts QueryOptions) error {
 		return fmt.Errorf("unable to query: %w", err)
 	}
 
-	fmt.Print(cl.Format(out))
+	fmt.Print(printer.Rows(out))
 
 	return nil
 }

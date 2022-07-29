@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/mikelorant/ezdb2/internal/structprinter"
+	"github.com/mikelorant/ezdb2/internal/printer"
 	"github.com/mikelorant/ezdb2/internal/tunnel"
 	"golang.org/x/crypto/ssh"
 )
@@ -24,7 +24,7 @@ const (
 )
 
 func (t Tunnel) String() string {
-	return structprinter.Sprint(t)
+	return printer.Struct(t)
 }
 
 func isTunnel(tun *Tunnel) bool {

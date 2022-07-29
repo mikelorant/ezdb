@@ -15,15 +15,9 @@ func (s *Shim) ShowVariable(variable string) ([][]string, error) {
 		q = fmt.Sprintf(QueryShowVariable, variable)
 	}
 
-	rows, err := s.DB.Query(q)
+	out, err := s.query(q)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get database list: %w", err)
-	}
-	defer rows.Close()
-
-	out, err := output(rows)
-	if err != nil {
-		return out, fmt.Errorf("unable to output rows: %w", err)
+		return nil, fmt.Errorf("unable to get variable: %w", err)
 	}
 
 	return out, nil

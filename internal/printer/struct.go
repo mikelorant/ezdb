@@ -1,4 +1,4 @@
-package structprinter
+package printer
 
 import (
 	"bytes"
@@ -9,7 +9,7 @@ import (
 	"github.com/goccy/go-yaml"
 )
 
-func Sprint(v interface{}) string {
+func Struct(v interface{}) string {
 	y, err := yaml.Marshal(v)
 	if err != nil {
 		return ""

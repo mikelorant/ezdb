@@ -2,7 +2,7 @@ package app
 
 import (
 	"github.com/mikelorant/ezdb2/internal/storage"
-	"github.com/mikelorant/ezdb2/internal/structprinter"
+	"github.com/mikelorant/ezdb2/internal/printer"
 )
 
 type Stores []Store
@@ -17,11 +17,11 @@ type Store struct {
 }
 
 func (s Store) String() string {
-	return structprinter.Sprint(s)
+	return printer.Struct(s)
 }
 
 func (a *App) GetStorageClient(name string) (*storage.Store, error) {
-	var store *Store
+	store := &Store{}
 
 	switch name {
 	case "pipe":

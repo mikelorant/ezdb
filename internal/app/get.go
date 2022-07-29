@@ -2,6 +2,8 @@ package app
 
 import (
 	"fmt"
+
+	"github.com/mikelorant/ezdb2/internal/printer"
 )
 
 type GetSessionOptions struct {
@@ -29,7 +31,7 @@ func (a *App) GetSession(opts GetSessionOptions) error {
 		return fmt.Errorf("unable to get session: %w", err)
 	}
 
-	fmt.Print(cl.Format(out))
+	fmt.Print(printer.Rows(out))
 
 	return nil
 }
@@ -50,7 +52,7 @@ func (a *App) GetVariable(opts GetVariableOptions) error {
 		return fmt.Errorf("unable to get variable: %w", err)
 	}
 
-	fmt.Print(cl.Format(out))
+	fmt.Print(printer.Rows(out))
 
 	return nil
 }

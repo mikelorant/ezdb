@@ -19,7 +19,6 @@ type Shim interface {
 	IsDatabase(name string) bool
 	ListDatabases() ([]string, error)
 	Query(query string) ([][]string, error)
-	Format(rows [][]string) string
 	ShowSession() ([][]string, error)
 	ShowVariable(variable string) ([][]string, error)
 }
@@ -94,10 +93,6 @@ func (d *Database) ListDatabases() ([]string, error) {
 
 func (d *Database) Query(query string) ([][]string, error) {
 	return d.shim.Query(query)
-}
-
-func (d *Database) Format(rows [][]string) string {
-	return d.shim.Format(rows)
 }
 
 func (d *Database) ShowSession() ([][]string, error) {

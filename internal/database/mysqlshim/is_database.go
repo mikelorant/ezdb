@@ -13,8 +13,7 @@ func (s *Shim) IsDatabase(name string) bool {
 
 	query := fmt.Sprintf(QueryDBExists, name)
 
-	row := s.DB.QueryRow(query)
-	row.Scan(&dbname)
+	s.queryRow(query, &dbname)
 
 	return dbname == name
 }
