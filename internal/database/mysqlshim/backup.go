@@ -9,9 +9,10 @@ var (
 	MySQLDumpCommand = "mysqldump"
 	MySQLDumpOptions = []string{
 		"--compress",
-		"--column-statistics=0",
-		"--ssl-mode=preferred",
-		"--set-gtid-purged=OFF",
+		"--routines",
+		"--lock-tables=false",
+		"--net_buffer_length=16384",
+		"--ssl=true",
 	}
 )
 

@@ -100,8 +100,9 @@ func (a *App) Restore(opts RestoreOptions) error {
 type ReplaceRegexpString [2]string
 
 var (
-	MySQLRestoreReplaceUTF     = ReplaceRegexpString{"utf8mb4_0900_ai_ci", "utf8mb4_unicode_ci"}
+	MySQLRestoreReplaceUTF     = ReplaceRegexpString{"utf8mb4_0900_ai_ci", "utf8mb4_unicode_520_ci"}
 	MySQLRestoreReplaceDefiner = ReplaceRegexpString{"DEFINER=[^ *]+", "DEFINER=CURRENT_USER"}
+	MySQLRestoreReplaceGTID    = ReplaceRegexpString{"SET\\ @@GLOBAL.GTID_PURGED=", "#\\ SET\\ @@GLOBAL.GTID_PURGED="}
 )
 
 func doRestore(cmd Restorer, name, filename string, retriever Retriever, runner Runner, verbose bool) ([]byte, error) {
@@ -138,6 +139,7 @@ func doRestore(cmd Restorer, name, filename string, retriever Retriever, runner 
 	rr := transform.NewReader(r, transform.Chain(
 		getTransformer(MySQLRestoreReplaceUTF),
 		getTransformer(MySQLRestoreReplaceDefiner),
+		getTransformer(MySQLRestoreReplaceGTID),
 	))
 
 	if verbose {
