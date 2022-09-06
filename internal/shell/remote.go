@@ -1,11 +1,11 @@
 package shell
 
 import (
-	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"syscall"
 
 	"golang.org/x/sync/errgroup"
@@ -32,19 +32,16 @@ func (s RemoteShell) Run(out io.Writer, in io.Reader, cmd string, combinedOutput
 	if err != nil {
 		return fmt.Errorf("unable to create stdout pipe: %w", err)
 	}
-	stdoutBuffer := bufio.NewReader(stdout)
 
 	stderr, err := s.session.StderrPipe()
 	if err != nil {
 		return fmt.Errorf("unable to create stderr pipe: %w", err)
 	}
-	stderrBuffer := bufio.NewReader(stderr)
 
 	stdin, err := s.session.StdinPipe()
 	if err != nil {
 		return fmt.Errorf("unable to create stdin pipe: %w", err)
 	}
-	stdinBuffer := bufio.NewWriter(stdin)
 
 	if err := s.session.Start(cmd); err != nil {
 		return fmt.Errorf("unable to run command: %w", err)
@@ -53,19 +50,24 @@ func (s RemoteShell) Run(out io.Writer, in io.Reader, cmd string, combinedOutput
 	g := new(errgroup.Group)
 
 	g.Go(func() error {
-		_, err := io.Copy(out, stdoutBuffer)
+		_, err := io.Copy(out, stdout)
 		return err
 	})
 
 	if combinedOutput {
 		g.Go(func() error {
-			_, err := io.Copy(out, stderrBuffer)
+			_, err := io.Copy(out, stderr)
+			return err
+		})
+	} else {
+		g.Go(func() error {
+			_, err := io.Copy(os.Stderr, stderr)
 			return err
 		})
 	}
 
 	g.Go(func() error {
-		_, err := io.Copy(stdinBuffer, in)
+		_, err := io.Copy(stdin, in)
 		stdin.Close()
 		if errors.Is(err, syscall.EPIPE) {
 			return nil
