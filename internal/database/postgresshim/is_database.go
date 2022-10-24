@@ -15,5 +15,5 @@ func (s *Shim) IsDatabase(name string) bool {
 
 	s.queryRow(query, &dbname)
 
-	return dbname == name
+	return dbname == "1"
 }

@@ -32,6 +32,10 @@ func NewMySQLConfig(cfg Config) *mysql.Config {
 }
 
 func NewPostgresConfig(cfg Config) *pgx.ConnConfig {
+	if cfg.Name == "" {
+		cfg.Name = "postgres"
+	}
+
 	if cfg.Port == 0 {
 		cfg.Port = 5432
 	}

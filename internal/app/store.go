@@ -1,8 +1,8 @@
 package app
 
 import (
-	"github.com/mikelorant/ezdb2/internal/storage"
 	"github.com/mikelorant/ezdb2/internal/printer"
+	"github.com/mikelorant/ezdb2/internal/storage"
 )
 
 type Stores []Store

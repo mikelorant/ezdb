@@ -11,7 +11,7 @@ const (
 func (s *Shim) CreateDatabase(name string) error {
 	q := fmt.Sprintf(QueryCreateDatabase, name)
 
-	if err := s.exec(q); err != nil {
+	if _, err := s.query(q); err != nil {
 		return fmt.Errorf("unable to create database: %v: %w", name, err)
 	}
 
